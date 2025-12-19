@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>宏观研究分析 - AI Trader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: linear-gradient(155deg, #ffffff 0%, #f4f4f4 40%, #ebebeb 100%);
+      --surface: rgba(255, 255, 255, 0.96);
+      --text-primary: #121212;
+      --text-secondary: rgba(0, 0, 0, 0.65);
+      --accent: #000000;
+      --line: rgba(0, 0, 0, 0.85);
+      --subline: rgba(0, 0, 0, 0.2);
+      --grid-line: rgba(0, 0, 0, 0.06);
+      color-scheme: light;
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans CJK SC', sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+    }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      background: #ffffff;
+      border: 2px solid #000000;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border-bottom: 2px solid #000000;
+      padding: 14px 32px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .brand {
+      font-weight: 600;
+      font-size: 18px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-item {
+      padding: 10px 18px;
+      border: 1px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .nav-item:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+    .nav-item.active {
+      background: #000000;
+      color: #ffffff;
+    }
+    .nav-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .country-switcher {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f9f9f9;
+      border: 1px solid #000000;
+    }
+    .country-btn {
+      padding: 8px 16px;
+      border: 1px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      display: inline-block;
+    }
+    .country-btn:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+    .country-btn.active {
+      background: #000000;
+      color: #ffffff;
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 32px;
+      flex: 1;
+    }
+    section {
+      background: #ffffff;
+      padding: 32px 0;
+      margin-bottom: 0;
+      border-bottom: 1px solid #000000;
+    }
+    section:last-child {
+      border-bottom: none;
+    }
+    section h2 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: #000000;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 12px;
+    }
+    section h3 {
+      color: #000000;
+      margin-top: 28px;
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    .section-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .text-card {
+      background: #ffffff;
+      padding: 20px 0;
+      border: none;
+    }
+    .text-card p {
+      margin: 0 0 16px 0;
+      line-height: 1.7;
+      color: #000000;
+    }
+    .text-card ul,
+    .text-card ol {
+      margin: 0 0 16px 20px;
+      padding: 0;
+      line-height: 1.7;
+    }
+    .text-card li {
+      margin-bottom: 8px;
+      color: #000000;
+    }
+    .table-card {
+      overflow-x: auto;
+      border: 1px solid #000000;
+      background: #ffffff;
+      margin: 20px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    thead th {
+      background: #ffffff;
+      color: #000000;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid #000000;
+      font-weight: 600;
+    }
+    tbody td {
+      border-bottom: 1px solid #000000;
+      padding: 12px 16px;
+      vertical-align: top;
+      color: #000000;
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .code-card {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #000000;
+      padding: 18px;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    .code-card pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .chart-card {
+      background: #ffffff;
+      border: 1px solid #000000;
+      padding: 20px;
+    }
+    .chart-card h4 {
+      margin: 0 0 16px;
+      color: #000000;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border-bottom: 1px solid #000000;
+      padding-bottom: 8px;
+    }
+    .chart {
+      width: 100%;
+      height: 400px;
+    }
+    footer {
+      text-align: center;
+      color: #000000;
+      font-size: 0.85rem;
+      padding: 30px 0;
+      border-top: 1px solid #000000;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="top-nav">
+    <div class="brand">AI Trader by Frank</div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-item">策略概览</a>
+      <a href="portfolio_HSI_SHSZ300_SPX.html" class="nav-item">组合视图</a>
+      <a href="macro_deepseek_analysis_crossregion.html" class="nav-item active">宏观分析</a>
+      <a href="weekly_report_summary.html" class="nav-item">周度摘要</a>
+    </div>
+    <div class="nav-meta">更新：2025-12-19</div>
+  </nav>
+  <main>
+    <div class="country-switcher">
+      <a href="macro_deepseek_analysis_crossregion.html" class="country-btn ">🌍 跨区域分析</a><a href="macro_deepseek_analysis_CN.html" class="country-btn ">🇨🇳 中国</a><a href="macro_deepseek_analysis_US.html" class="country-btn ">🇺🇸 美国</a><a href="macro_deepseek_analysis_HK.html" class="country-btn ">🇭🇰 香港</a><a href="macro_deepseek_analysis_KR.html" class="country-btn ">🇰🇷 韩国</a><a href="macro_deepseek_analysis_TW.html" class="country-btn ">🇹🇼 台湾</a><a href="macro_deepseek_analysis_SG.html" class="country-btn active">🇸🇬 新加坡</a>
+    </div>
+    <section id="1-价格和宏观指标趋势分析"><h2>1. 价格和宏观指标趋势分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>指标类别</th><th>指标名称</th><th>中期趋势</th><th>波动率</th><th>周期性</th><th>季节性</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td>价格指标</td><td>海峡时报指数 (STI)</td><td><span style="color: #00a651;">↑ 上升</span></td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td><td>3-5年周期，位于周期高部</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>价格指标</td><td>新加坡10年期公债收益率 (GTSGD10Y)</td><td><span style="color: #e63946;">↓ 下降</span></td><td><span style="background: #f44336; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">高</span></td><td>与全球利率周期同步，位于周期下行阶段</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>价格指标</td><td>新加坡元 (USDSGD)</td><td><span style="color: #e63946;">↓ 下降</span></td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td><td>与美元周期及新加坡货币政策相关，位于强新元周期</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>宏观指标</td><td>新加坡国内生产总值同比(不变价) (SGDPYOY)</td><td><span style="color: #ffa726;">↔ 震荡</span></td><td><span style="background: #f44336; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">高</span></td><td>与全球贸易周期同步，位于周期中上部</td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td></tr><tr><td>宏观指标</td><td>新加坡国内生产总值季环比(年化, 季调) (SGDPQOQ)</td><td><span style="color: #ffa726;">↔ 震荡</span></td><td><span style="background: #d32f2f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">极高</span></td><td>与全球贸易及国内政策脉冲相关，无明显长周期</td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td></tr><tr><td>宏观指标</td><td>新加坡消费者物价指数同比 (SICPIYOY)</td><td><span style="color: #e63946;">↓ 下降</span></td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td><td>滞后于全球通胀周期，位于周期下行尾部</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>宏观指标</td><td>新加坡金管局核心通胀率 (SMASCORE)</td><td><span style="color: #e63946;">↓ 下降</span></td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td><td>滞后于全球通胀周期，位于周期下行尾部</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>宏观指标</td><td>新加坡非石油国内出口同比 (SIEXNON)</td><td><span style="color: #ffa726;">↔ 震荡</span></td><td><span style="background: #d32f2f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">极高</span></td><td>与全球电子周期高度同步，位于周期上行阶段</td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td></tr><tr><td>宏观指标</td><td>新加坡制造业采购经理人指数 (SPMINDX)</td><td><span style="color: #ffa726;">↔ 震荡</span></td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td><td>与制造业PMI全球周期同步，位于扩张区间边缘</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>宏观指标</td><td>新加坡失业率 (EHUPSG)</td><td><span style="color: #ffa726;">↔ 震荡</span></td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td><td>与经济周期反向，位于历史低位</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>宏观指标</td><td>新加坡货币供应M2同比 (SIMSM2Y)</td><td><span style="color: #00a651;">↑ 上升</span></td><td><span style="background: #ffa726; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">中</span></td><td>与国内信贷周期同步，位于周期上行阶段</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr><tr><td>宏观指标</td><td>新加坡元名义有效汇率指数 (SNEER)</td><td><span style="color: #00a651;">↑ 上升</span></td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td><td>与新加坡金管局货币政策立场同步，位于强汇率周期</td><td><span style="background: #42a5f5; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">低</span></td></tr></tbody></table></div></div></section><section id="2-指标间相关性分析"><h2>2. 指标间相关性分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>指标关系</th><th>相关系数</th><th>领先滞后关系</th><th>关系强度</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td>STI vs 新加坡国内生产总值同比(不变价) (SGDPYOY)</td><td>0.65</td><td>STI领先SGDPYOY约2-3个月</td><td>强正相关</td></tr><tr><td>海峡时报指数 (STI) vs SIEXNON</td><td>0.58</td><td>SIEXNON领先STI约1个月</td><td>中度正相关</td></tr><tr><td>GTSGD10Y vs 新加坡金管局核心通胀率 (SMASCORE)</td><td>0.75</td><td>SMASCORE领先GTSGD10Y约1-2个月</td><td>强正相关</td></tr><tr><td>GTSGD10Y vs 新加坡隔夜平均利率 (SIBCSORA)</td><td>0.85</td><td>SIBCSORA与GTSGD10Y基本同步</td><td>强正相关</td></tr><tr><td>USDSGD vs 新加坡元名义有效汇率指数 (SNEER)</td><td>-0.82</td><td>SNEER与USDSGD基本同步（反向）</td><td>强负相关</td></tr><tr><td>SIEXNON vs 新加坡非石油国内出口电子产品同比 (SIEXEYOY)</td><td>0.90</td><td>SIEXEYOY与SIEXNON基本同步</td><td>强正相关</td></tr><tr><td>新加坡制造业采购经理人指数 (SPMINDX) vs SIEXNON</td><td>0.55</td><td>SPMINDX与SIEXNON基本同步</td><td>中度正相关</td></tr><tr><td>新加坡货币供应M2同比 (SIMSM2Y) vs STI</td><td>0.40</td><td>SIMSM2Y领先STI约1-2个月</td><td>弱正相关</td></tr><tr><td>新加坡国内生产总值季环比(年化, 季调) (SGDPQOQ) vs SGDPYOY</td><td>0.70</td><td>SGDPQOQ领先SGDPYOY约1个季度</td><td>强正相关</td></tr></tbody></table></div><div class="chart-grid"><div class="chart-card"><h4>海峡时报指数 (STI) vs 新加坡国内生产总值同比(不变价) (SGDPYOY)</h4><div class="chart" id="chart-0"></div></div><div class="chart-card"><h4>海峡时报指数 (STI) vs 新加坡非石油国内出口同比 (SIEXNON)</h4><div class="chart" id="chart-1"></div></div><div class="chart-card"><h4>新加坡10年期公债收益率 (GTSGD10Y) vs 新加坡金管局核心通胀率 (SMASCORE)</h4><div class="chart" id="chart-2"></div></div><div class="chart-card"><h4>新加坡10年期公债收益率 (GTSGD10Y) vs 新加坡隔夜平均利率 (SIBCSORA)</h4><div class="chart" id="chart-3"></div></div><div class="chart-card"><h4>新加坡元 (USDSGD) vs 新加坡元名义有效汇率指数 (SNEER)</h4><div class="chart" id="chart-4"></div></div><div class="chart-card"><h4>新加坡非石油国内出口同比 (SIEXNON) vs 新加坡非石油国内出口电子产品同比 (SIEXEYOY)</h4><div class="chart" id="chart-5"></div></div><div class="chart-card"><h4>新加坡制造业采购经理人指数 (SPMINDX) vs 新加坡非石油国内出口同比 (SIEXNON)</h4><div class="chart" id="chart-6"></div></div><div class="chart-card"><h4>新加坡货币供应M2同比 (SIMSM2Y) vs 海峡时报指数 (STI)</h4><div class="chart" id="chart-7"></div></div><div class="chart-card"><h4>新加坡国内生产总值季环比(年化, 季调) (SGDPQOQ) vs 新加坡国内生产总值同比(不变价) (SGDPYOY)</h4><div class="chart" id="chart-8"></div></div></div></div></section><section id="3-经济增长状况分析"><h2>3. 经济增长状况分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>维度</th><th>趋势</th><th>周期</th><th>驱动因素</th><th>制约因素</th><th>未来1-3个月基准情景</th><th>尾部风险</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>生产</strong></td><td>温和扩张</td><td>制造业PMI在荣枯线附近震荡，服务业PMI保持扩张。</td><td>全球电子周期复苏（SIEXEYOY大幅转正）、AI相关需求。</td><td>地缘政治对供应链的扰动、外部需求的不确定性。</td><td>制造业PMI维持在50-52区间，服务业PMI保持55左右。</td><td>全球科技周期逆转，外部需求急剧恶化。</td></tr><tr><td><strong>消费</strong></td><td>稳健</td><td>失业率处于历史低位，支撑内需。</td><td>充分就业、实际工资增长（通胀回落）、旅游业复苏。</td><td>高利率环境对信贷消费的抑制、房地产市场降温。</td><td>零售销售保持温和增长，服务消费稳健。</td><td>劳动力市场意外恶化，居民信心受挫。</td></tr><tr><td><strong>出口</strong></td><td>强劲复苏</td><td>非石油国内出口（NODX）同比大幅反弹，尤其电子产品。</td><td>全球半导体和电子产品需求回暖、AI硬件投资周期。</td><td>主要贸易伙伴（中美欧）经济放缓、贸易保护主义抬头。</td><td>NODX同比增速维持在10-15%的高位区间。</td><td>全球贸易摩擦升级，关键出口市场陷入衰退。</td></tr><tr><td><strong>投资</strong></td><td>分化</td><td>房地产投资受政策抑制，但制造业和科技投资受外需拉动。</td><td>企业盈利改善、产业升级和数字化转型需求。</td><td>高融资成本、商业地产市场疲软。</td><td>固定资产投资增速温和，结构上制造业投资强于房地产。</td><td>全球融资环境急剧收紧，企业资本开支计划推迟。</td></tr></tbody></table></div><div class="text-card"><p><strong>总结与展望</strong>：新加坡经济正处于由外需（尤其是电子出口）强劲复苏驱动的上行阶段，内需在充分就业的支持下保持稳健。未来1-3个月，增长动能有望延续，基准情景下GDP同比增速将维持在4-5%的较高水平。核心驱动是持续的全球科技周期上行，但主要风险来自外部，即全球需求超预期放缓或贸易环境恶化。</p></div><div class="text-card"><p><strong>核心指标预测</strong>：<br>- <strong>SGDPYOY (2026-02)</strong>：预测值 <strong>4.5%</strong> (围绕一致预期4.0%上修，考虑出口持续强势)。<br>- <strong>SIEXNON (2026-01)</strong>：预测值 <strong>15.0%</strong> (基于近期高增趋势及电子产品周期)。</p></div></div></section><section id="4-通胀状况分析"><h2>4. 通胀状况分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>维度</th><th>趋势</th><th>周期</th><th>驱动因素</th><th>制约因素</th><th>未来1-3个月基准情景</th><th>尾部风险</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>就业与收入</strong></td><td>紧张趋缓</td><td>失业率处于历史低位但略有上升，工资增长放缓。</td><td>经济扩张、劳动力市场结构性紧张。</td><td>经济增长放缓、企业盈利压力。</td><td>失业率小幅升至2.1-2.2%，名义工资增速温和。</td><td>经济急剧下滑导致大规模裁员。</td></tr><tr><td><strong>消费与商品价格</strong></td><td>全面回落</td><td>CPI与核心通胀均持续下行，接近政策目标。</td><td>全球大宗商品价格趋稳、供应链压力缓解、内需温和。</td><td>地缘冲突导致能源价格飙升、服务价格粘性。</td><td>CPI同比进一步降至0.5-1.0%，核心通胀降至1.0%以下。</td><td>新一轮全球供应链冲击或恶劣天气推高食品价格。</td></tr><tr><td><strong>财政与货币政策</strong></td><td>偏宽松</td><td>货币政策已转向宽松（利率下行），财政政策保持支持。</td><td>通胀受控为政策转向提供空间，需支持经济增长。</td><td>通胀反弹风险、汇率过度波动风险。</td><td>金管局维持现有汇率政策立场，允许新元名义有效汇率（NEER）温和升值以抑制输入性通胀。</td><td>通胀意外反弹迫使政策重新收紧。</td></tr></tbody></table></div><div class="text-card"><p><strong>总结与展望</strong>：新加坡的通胀压力已得到显著控制，核心通胀率已回落至金管局舒适区间。未来1-3个月，在基数效应、内需平稳和进口成本稳定的共同作用下，通胀预计将进一步温和下行。这为货币政策维持宽松立场提供了坚实基础。主要风险是外部输入性通胀的再次抬头。</p></div><div class="text-card"><p><strong>核心指标预测</strong>：<br>- <strong>SMASCORE (2026-01)</strong>：预测值 <strong>0.5%</strong> (延续下行趋势，接近历史低位)。<br>- <strong>SICPIYOY (2026-01)</strong>：预测值 <strong>0.7%</strong> (与核心通胀趋势一致)。</p></div></div></section><section id="5-流动性状况分析"><h2>5. 流动性状况分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>维度</th><th>趋势</th><th>周期</th><th>驱动因素</th><th>制约因素</th><th>未来1-3个月基准情景</th><th>尾部风险</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>货币政策</strong></td><td>宽松</td><td>跟随全球央行进入降息周期，SORA持续下行。</td><td>通胀受控、经济增长需要支持。</td><td>新元过度贬值压力、金融稳定考虑。</td><td>SORA和10年期国债收益率继续温和下行。</td><td>美联储暂停或逆转降息，导致资本外流压力。</td></tr><tr><td><strong>财政政策</strong></td><td>支持性</td><td>保持扩张性，支持经济转型和社会支出。</td><td>财政盈余提供空间，需应对外部不确定性。</td><td>长期财政可持续性。</td><td>预算案保持对企业和家庭的定向支持。</td><td>财政赤字大幅扩张，引发市场对债务可持续性的担忧。</td></tr><tr><td><strong>汇率与利率</strong></td><td>利率降，汇率强</td><td>利率下行周期，汇率因金管局政策立场保持强势。</td><td>利差收窄、风险偏好改善吸引资本流入。</td><td>美元全面走强、区域货币竞争性贬值。</td><td>USDSGD在1.28-1.32区间震荡偏弱，10年国债收益率向1.5%靠拢。</td><td>避险情绪驱动美元暴涨，新元被动大幅贬值。</td></tr><tr><td><strong>M2与信用</strong></td><td>扩张加速</td><td>M2同比增速显著回升，进入信用扩张周期。</td><td>利率下降刺激信贷需求、外资流入。</td><td>银行信贷标准、企业部门杠杆率。</td><td>M2同比增速维持在8-9%的较高水平。</td><td>信贷质量恶化引发银行惜贷，信用周期中断。</td></tr></tbody></table></div><div class="text-card"><p><strong>总结与展望</strong>：新加坡的流动性环境非常宽松。国内货币政策已明确转向，市场利率快速下行，同时货币供应量（M2）加速增长，显示信用环境正在改善。汇率方面，金管局通过名义有效汇率（NEER）管理，在通胀受控背景下可能允许其温和升值，导致美元兑新元汇率（USDSGD）偏弱。未来1-3个月，这一宽松格局预计将延续。</p></div><div class="text-card"><p><strong>核心指标预测</strong>：<br>- <strong>GTSGD10Y (2026-01)</strong>：预测值 <strong>1.65%</strong> (延续下行趋势)。<br>- <strong>USDSGD (2026-01)</strong>：预测值 <strong>1.2950</strong> (震荡偏弱)。<br>- <strong>SIMSM2Y (2026-01)</strong>：预测值 <strong>8.0%</strong> (维持高位)。</p></div></div></section><section id="6-事件影响分析"><h2>6. 事件影响分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>时间点</th><th>事件/数据</th><th>影响点评</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>2025年12月</strong></td><td>美联储议息会议</td><td>若确认降息路径，将巩固全球宽松预期，利好新加坡利率下行和风险资产（STI）。若态度鹰派，则带来反向压力。</td></tr><tr><td><strong>2026年1月</strong></td><td>新加坡Q4 GDP初步数据、12月NODX数据</td><td>GDP数据将验证增长动能，NODX是领先指标。数据若强劲，将强化经济乐观预期，支撑股市和汇率。</td></tr><tr><td><strong>2026年1月</strong></td><td>新加坡12月CPI/核心通胀数据</td><td>预计进一步走低，为金管局在4月会议上维持宽松立场提供数据支持，利好债券市场。</td></tr><tr><td><strong>2026年2月</strong></td><td>中国农历新年</td><td>季节性因素可能短暂影响本地消费和部分生产活动，但整体影响有限。</td></tr><tr><td><strong>2026年3月</strong></td><td>全球主要经济体PMI数据</td><td>作为全球需求风向标，若持续改善，将利好新加坡出口导向型经济；若转弱，则构成增长风险。</td></tr><tr><td><strong>持续关注</strong></td><td>地缘政治局势（如台海、南海）</td><td>新加坡作为高度开放的小型经济体，地缘政治紧张会直接冲击其贸易、物流和金融中心地位，是重大风险源。</td></tr></tbody></table></div><div class="text-card"><p><strong>总结与展望</strong>：未来1-3个月的关键事件主要围绕海外央行政策（尤其是美联储）和国内经济数据的验证。基准情景下，海外宽松周期延续，国内增长和通胀数据支持现行政策，整体环境对风险资产（股票）和债券均相对友好。最大的不确定性仍来自外部，包括主要央行的政策意外和地缘政治黑天鹅事件。</p></div><div class="text-card"><p><strong>核心指标预测</strong>：事件影响已融入前述各部分的趋势分析中，具体点位预测见第3、4、5、8部分。</p></div></div></section><section id="7-周期定位分析"><h2>7. 周期定位分析</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>维度</th><th>当前阶段</th><th>未来1-3个月趋势</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>增长周期</strong></td><td><strong>扩张中期</strong>：外需驱动强劲，内需稳健，产能利用率提升。</td><td><strong>趋势延续</strong>：增长动能有望保持，但斜率可能因高基数而放缓。</td></tr><tr><td><strong>通胀周期</strong></td><td><strong>下行末期</strong>：核心通胀已接近目标，下行速度放缓。</td><td><strong>低位震荡</strong>：通胀预计在低位企稳，大幅下行或反弹空间均有限。</td></tr><tr><td><strong>流动性/政策周期</strong></td><td><strong>宽松早期</strong>：货币政策已转向降息，信用开始扩张。</td><td><strong>宽松深化</strong>：利率有望进一步下行，流动性保持充裕。</td></tr><tr><td><strong>整体经济周期</strong></td><td><strong>“金发女孩”阶段</strong>（Goldilocks）：高增长、低通胀、宽货币的组合。</td><td><strong>向扩张后期过渡</strong>：需警惕通胀预期回升或外部需求拐点。</td></tr></tbody></table></div><div class="text-card"><p><strong>总结与历史比较</strong>：当前新加坡经济周期类似于 <strong>2021年下半年</strong>：同样处于全球复苏带动的出口强劲增长期，通胀从高位回落，货币政策开始关注增长。<strong>相似点</strong>：出口（尤其是电子）是核心引擎，股市表现强劲。<strong>不同点</strong>：1) 当前全球通胀背景更温和，央行政策转向更果断；2) 当前中国经济增长动能弱于当时，对区域贸易的拉动作用可能不同；3) 地缘政治风险显著高于当时。</p></div><div class="text-card"><p><strong>展望与预测</strong>：参考历史类似阶段，在“金发女孩”环境下，股市（STI）和风险资产通常表现良好，债券收益率下行但空间受增长制约。未来1-3个月，这一组合有望维持。预测<strong>SGDPYOY在2026年Q1平均为4.3%</strong>，<strong>SMASCORE维持在0.5-1.0%</strong>。周期发展的关键观察点在于出口动能的持续性和通胀能否稳定在低位。</p></div></div></section><section id="8-价格走势预测"><h2>8. 价格走势预测</h2><div class="section-content"><div class="table-card"><table><thead><tr><th>价格指标</th><th>周期位置</th><th>相互影响</th><th>未来1-3个月趋势</th><th>具体点位预测 (2026-01)</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>海峡时报指数 (STI)</strong></td><td>处于由盈利增长和流动性驱动的牛市周期中后部。</td><td>受增长(SGDP, SIEXNON)正向驱动，受利率(GTSGD10Y)下行支撑，强汇率(SNEER)对部分出口企业构成轻微压力。</td><td><strong>震荡上行</strong>。盈利增长是主驱动，但估值已不低，上行过程伴随波动。</td><td><strong>4,550 - 4,750点</strong> (从当前4501点温和上涨)</td></tr><tr><td><strong>新加坡10年期公债收益率 (GTSGD10Y)</strong></td><td>处于全球利率下行周期的中段。</td><td>跟随国内政策利率(SIBCSORA)和全球利率（尤其是美债）下行，通胀(SMASCORE)低迷提供空间。</td><td><strong>温和下行</strong>。下行斜率取决于通胀数据和全球央行步伐。</td><td><strong>1.60% - 1.75%</strong> (中枢1.68%)</td></tr><tr><td><strong>新加坡元 (USDSGD)</strong></td><td>处于新元名义有效汇率(SNEER)升值通道下的弱势周期。</td><td>直接受金管局汇率政策立场（允许NEER温和升值）压制，利差收窄也构成压力。</td><td><strong>区间震荡，偏弱</strong>。在宽松周期下，新元大幅升值动力亦不足。</td><td><strong>1.2850 - 1.3150</strong> (中枢1.3000)</td></tr></tbody></table></div><div class="text-card"><p><strong>总结与展望</strong>：三大价格指标均处于明确的趋势性行情中：<strong>股牛、债牛、汇强</strong>。未来1-3个月，这一宏观组合预计将继续支撑资产价格。STI的上行空间取决于企业盈利能否兑现高增长预期；债券收益率的下行空间则受限于已处于低位的绝对水平和新元汇率管理需求；USDSGD的波动区间将收窄，方向取决于全球美元走势与新加坡国内政策的平衡。整体而言，风险资产（股票）的配置价值仍高于避险资产，但需警惕估值和外部事件冲击。</p></div></div></section><section id="9-总结与展望"><h2>9. 总结与展望</h2><div class="section-content"><div class="text-card"><p><strong>对当前经济状况的总体判断</strong>：新加坡经济正处于一个难得的“甜蜜点”（Sweet Spot）：<strong>外需驱动的经济增长强劲，内部通胀压力迅速消退，货币政策已转向宽松，金融条件显著改善</strong>。这是一个典型的“金发女孩”经济环境。</p></div><div class="text-card"><p><strong>核心观点和主要结论</strong>：<br>1.  <strong>增长引擎</strong>：经济增长的核心驱动力来自全球电子周期复苏带动的<strong>出口强劲反弹</strong>，尤其是非石油国内出口（NODX）和电子产品出口。内需在充分就业的支持下保持稳健。<br>2.  <strong>通胀受控</strong>：整体通胀（CPI）与核心通胀（MAS Core）均已大幅回落至接近甚至低于历史均值的水平，为货币政策转向提供了关键条件。<br>3.  <strong>政策宽松</strong>：新加坡金管局（MAS）的货币政策立场已实质转向宽松，体现为新加坡元名义有效汇率（SNEER）升值斜率放缓及国内利率（SORA、国债收益率）的快速下行。货币供应量（M2）增速加快，信用环境趋于宽松。<br>4.  <strong>资产表现</strong>：上述宏观组合利好风险资产。股市（STI）处于盈利和流动性双驱动的上升通道；债券市场受益于利率下行；新元汇率（USDSGD）在政策引导下保持相对强势。</p></div><div class="text-card"><p><strong>未来3-6个月的经济展望</strong>：<br>- <strong>基准情景（概率60%）</strong>：外需动能至少延续至2026年上半年，GDP增长保持高于趋势水平（4%+），通胀在低位企稳，货币政策维持宽松。STI有望再创新高，但波动加大；债券收益率低位徘徊；USDSGD温和走弱。<br>- <strong>乐观情景（概率25%）</strong>：全球AI投资浪潮超预期，带动新加坡电子出口和科技投资持续火爆，经济增长上修。股市迎来新一轮估值和盈利双击行情。<br>- <strong>悲观情景（概率15%）</strong>：主要贸易伙伴（美、中、欧）经济出现超预期放缓，全球贸易萎缩，新加坡出口和经济增长急剧</p></div><div class="text-card"><p>---</p></div></div></section>
+  </main>
+</div>
+  <script>
+    const chartPairs = [{"id": "chart-0", "x": "STI", "y": "SGDPYOY", "title": "海峡时报指数 (STI) vs 新加坡国内生产总值同比(不变价) (SGDPYOY)", "x_display": "海峡时报指数 (STI)", "y_display": "新加坡国内生产总值同比(不变价) (SGDPYOY)"}, {"id": "chart-1", "x": "STI", "y": "SIEXNON", "title": "海峡时报指数 (STI) vs 新加坡非石油国内出口同比 (SIEXNON)", "x_display": "海峡时报指数 (STI)", "y_display": "新加坡非石油国内出口同比 (SIEXNON)"}, {"id": "chart-2", "x": "GTSGD10Y", "y": "SMASCORE", "title": "新加坡10年期公债收益率 (GTSGD10Y) vs 新加坡金管局核心通胀率 (SMASCORE)", "x_display": "新加坡10年期公债收益率 (GTSGD10Y)", "y_display": "新加坡金管局核心通胀率 (SMASCORE)"}, {"id": "chart-3", "x": "GTSGD10Y", "y": "SIBCSORA", "title": "新加坡10年期公债收益率 (GTSGD10Y) vs 新加坡隔夜平均利率 (SIBCSORA)", "x_display": "新加坡10年期公债收益率 (GTSGD10Y)", "y_display": "新加坡隔夜平均利率 (SIBCSORA)"}, {"id": "chart-4", "x": "USDSGD", "y": "SNEER", "title": "新加坡元 (USDSGD) vs 新加坡元名义有效汇率指数 (SNEER)", "x_display": "新加坡元 (USDSGD)", "y_display": "新加坡元名义有效汇率指数 (SNEER)"}, {"id": "chart-5", "x": "SIEXNON", "y": "SIEXEYOY", "title": "新加坡非石油国内出口同比 (SIEXNON) vs 新加坡非石油国内出口电子产品同比 (SIEXEYOY)", "x_display": "新加坡非石油国内出口同比 (SIEXNON)", "y_display": "新加坡非石油国内出口电子产品同比 (SIEXEYOY)"}, {"id": "chart-6", "x": "SPMINDX", "y": "SIEXNON", "title": "新加坡制造业采购经理人指数 (SPMINDX) vs 新加坡非石油国内出口同比 (SIEXNON)", "x_display": "新加坡制造业采购经理人指数 (SPMINDX)", "y_display": "新加坡非石油国内出口同比 (SIEXNON)"}, {"id": "chart-7", "x": "SIMSM2Y", "y": "STI", "title": "新加坡货币供应M2同比 (SIMSM2Y) vs 海峡时报指数 (STI)", "x_display": "新加坡货币供应M2同比 (SIMSM2Y)", "y_display": "海峡时报指数 (STI)"}, {"id": "chart-8", "x": "SGDPQOQ", "y": "SGDPYOY", "title": "新加坡国内生产总值季环比(年化, 季调) (SGDPQOQ) vs 新加坡国内生产总值同比(不变价) (SGDPYOY)", "x_display": "新加坡国内生产总值季环比(年化, 季调) (SGDPQOQ)", "y_display": "新加坡国内生产总值同比(不变价) (SGDPYOY)"}];
+    const macroData = {"SIEXNON": [{"date": "2017-09-30", "value": 16.7}, {"date": "2017-10-31", "value": -1.1}, {"date": "2017-11-30", "value": 20.5}, {"date": "2017-12-31", "value": 9.1}, {"date": "2018-01-31", "value": 3.1}, {"date": "2018-02-28", "value": 12.9}, {"date": "2018-03-31", "value": -6.0}, {"date": "2018-04-30", "value": -3.1}, {"date": "2018-05-31", "value": 11.8}, {"date": "2018-06-30", "value": 15.5}, {"date": "2018-07-31", "value": 0.8}, {"date": "2018-08-31", "value": 10.9}, {"date": "2018-09-30", "value": 5.0}, {"date": "2018-10-31", "value": 8.1}, {"date": "2018-11-30", "value": 8.0}, {"date": "2018-12-31", "value": -2.8}, {"date": "2019-01-31", "value": -8.5}, {"date": "2019-02-28", "value": -10.1}, {"date": "2019-03-31", "value": 4.7}, {"date": "2019-04-30", "value": -11.8}, {"date": "2019-05-31", "value": -10.1}, {"date": "2019-06-30", "value": -16.3}, {"date": "2019-07-31", "value": -17.5}, {"date": "2019-08-31", "value": -11.5}, {"date": "2019-09-30", "value": -9.0}, {"date": "2019-10-31", "value": -8.1}, {"date": "2019-11-30", "value": -12.5}, {"date": "2019-12-31", "value": -5.9}, {"date": "2020-01-31", "value": 2.4}, {"date": "2020-02-29", "value": -3.3}, {"date": "2020-03-31", "value": 3.0}, {"date": "2020-04-30", "value": 16.6}, {"date": "2020-05-31", "value": 9.7}, {"date": "2020-06-30", "value": -4.7}, {"date": "2020-07-31", "value": 13.9}, {"date": "2020-08-31", "value": 5.8}, {"date": "2020-09-30", "value": 7.7}, {"date": "2020-10-31", "value": 5.8}, {"date": "2020-11-30", "value": -3.1}, {"date": "2020-12-31", "value": -5.0}, {"date": "2021-01-31", "value": 6.8}, {"date": "2021-02-28", "value": 12.6}, {"date": "2021-03-31", "value": 4.0}, {"date": "2021-04-30", "value": 11.9}, {"date": "2021-05-31", "value": 6.0}, {"date": "2021-06-30", "value": 8.6}, {"date": "2021-07-31", "value": 15.9}, {"date": "2021-08-31", "value": 12.7}, {"date": "2021-09-30", "value": 2.6}, {"date": "2021-10-31", "value": 12.0}, {"date": "2021-11-30", "value": 17.8}, {"date": "2021-12-31", "value": 24.2}, {"date": "2022-01-31", "value": 18.4}, {"date": "2022-02-28", "value": 17.6}, {"date": "2022-03-31", "value": 9.4}, {"date": "2022-04-30", "value": 7.7}, {"date": "2022-05-31", "value": 6.4}, {"date": "2022-06-30", "value": 12.0}, {"date": "2022-07-31", "value": 8.5}, {"date": "2022-08-31", "value": 6.9}, {"date": "2022-09-30", "value": 11.4}, {"date": "2022-10-31", "value": 3.1}, {"date": "2022-11-30", "value": -6.1}, {"date": "2022-12-31", "value": -14.7}, {"date": "2023-01-31", "value": -20.6}, {"date": "2023-02-28", "value": -25.1}, {"date": "2023-03-31", "value": -15.8}, {"date": "2023-04-30", "value": -8.2}, {"date": "2023-05-31", "value": -9.8}, {"date": "2023-06-30", "value": -14.8}, {"date": "2023-07-31", "value": -15.7}, {"date": "2023-08-31", "value": -20.3}, {"date": "2023-09-30", "value": -22.6}, {"date": "2023-10-31", "value": -15.2}, {"date": "2023-11-30", "value": -3.5}, {"date": "2023-12-31", "value": 1.0}, {"date": "2024-01-31", "value": -1.5}, {"date": "2024-02-29", "value": 16.7}, {"date": "2024-03-31", "value": -0.2}, {"date": "2024-04-30", "value": -20.8}, {"date": "2024-05-31", "value": -9.6}, {"date": "2024-06-30", "value": -0.7}, {"date": "2024-07-31", "value": -8.8}, {"date": "2024-08-31", "value": 15.7}, {"date": "2024-09-30", "value": 10.3}, {"date": "2024-10-31", "value": 0.9}, {"date": "2024-11-30", "value": -4.8}, {"date": "2024-12-31", "value": 3.4}, {"date": "2025-01-31", "value": 9.0}, {"date": "2025-02-28", "value": -2.1}, {"date": "2025-03-31", "value": 7.5}, {"date": "2025-04-30", "value": 5.4}, {"date": "2025-05-31", "value": 12.4}, {"date": "2025-06-30", "value": -3.9}, {"date": "2025-07-31", "value": 12.9}, {"date": "2025-08-31", "value": -4.7}, {"date": "2025-09-30", "value": -11.5}, {"date": "2025-10-31", "value": 7.0}, {"date": "2025-11-30", "value": 22.2}], "SGDPQOQ": [{"date": "2017-09-30", "value": 9.9}, {"date": "2017-12-31", "value": 3.9}, {"date": "2018-03-31", "value": 2.7}, {"date": "2018-06-30", "value": 2.8}, {"date": "2018-09-30", "value": 3.3}, {"date": "2018-12-31", "value": -2.6}, {"date": "2019-03-31", "value": 2.1}, {"date": "2019-06-30", "value": 3.0}, {"date": "2019-09-30", "value": 0.4}, {"date": "2019-12-31", "value": 1.1}, {"date": "2020-03-31", "value": -0.2}, {"date": "2020-06-30", "value": -40.4}, {"date": "2020-09-30", "value": 41.8}, {"date": "2020-12-31", "value": 15.7}, {"date": "2021-03-31", "value": 21.0}, {"date": "2021-06-30", "value": -1.0}, {"date": "2021-09-30", "value": 4.0}, {"date": "2021-12-31", "value": 7.7}, {"date": "2022-03-31", "value": 6.7}, {"date": "2022-06-30", "value": 1.9}, {"date": "2022-09-30", "value": 1.9}, {"date": "2022-12-31", "value": 0.2}, {"date": "2023-03-31", "value": -0.2}, {"date": "2023-06-30", "value": 3.7}, {"date": "2023-09-30", "value": 3.7}, {"date": "2023-12-31", "value": 4.8}, {"date": "2024-03-31", "value": 1.1}, {"date": "2024-06-30", "value": 4.5}, {"date": "2024-09-30", "value": 12.5}, {"date": "2024-12-31", "value": 2.0}, {"date": "2025-03-31", "value": -2.0}, {"date": "2025-06-30", "value": 7.1}, {"date": "2025-09-30", "value": 9.8}], "SIMSM2Y": [{"date": "2017-08-31", "value": 6.7}, {"date": "2017-09-30", "value": 6.0}, {"date": "2017-10-31", "value": 5.5}, {"date": "2017-11-30", "value": 4.6}, {"date": "2017-12-31", "value": 3.3}, {"date": "2018-01-31", "value": 3.2}, {"date": "2018-02-28", "value": 3.4}, {"date": "2018-03-31", "value": 3.6}, {"date": "2018-04-30", "value": 2.7}, {"date": "2018-05-31", "value": 3.2}, {"date": "2018-06-30", "value": 2.8}, {"date": "2018-07-31", "value": 2.6}, {"date": "2018-08-31", "value": 2.6}, {"date": "2018-09-30", "value": 3.6}, {"date": "2018-10-31", "value": 3.4}, {"date": "2018-11-30", "value": 3.0}, {"date": "2018-12-31", "value": 3.5}, {"date": "2019-01-31", "value": 3.9}, {"date": "2019-02-28", "value": 3.9}, {"date": "2019-03-31", "value": 4.2}, {"date": "2019-04-30", "value": 4.9}, {"date": "2019-05-31", "value": 5.2}, {"date": "2019-06-30", "value": 5.5}, {"date": "2019-07-31", "value": 5.4}, {"date": "2019-08-31", "value": 4.9}, {"date": "2019-09-30", "value": 4.4}, {"date": "2019-10-31", "value": 4.8}, {"date": "2019-11-30", "value": 4.8}, {"date": "2019-12-31", "value": 5.9}, {"date": "2020-01-31", "value": 5.0}, {"date": "2020-02-29", "value": 5.8}, {"date": "2020-03-31", "value": 6.3}, {"date": "2020-04-30", "value": 6.8}, {"date": "2020-05-31", "value": 9.9}, {"date": "2020-06-30", "value": 9.5}, {"date": "2020-07-31", "value": 11.0}, {"date": "2020-08-31", "value": 12.2}, {"date": "2020-09-30", "value": 11.5}, {"date": "2020-10-31", "value": 10.9}, {"date": "2020-11-30", "value": 12.6}, {"date": "2020-12-31", "value": 12.6}, {"date": "2021-01-31", "value": 13.2}, {"date": "2021-02-28", "value": 11.3}, {"date": "2021-03-31", "value": 10.3}, {"date": "2021-04-30", "value": 10.8}, {"date": "2021-05-31", "value": 7.2}, {"date": "2021-06-30", "value": 7.0}, {"date": "2021-07-31", "value": 6.1}, {"date": "2021-08-31", "value": 2.1}, {"date": "2021-09-30", "value": 3.1}, {"date": "2021-10-31", "value": 4.0}, {"date": "2021-11-30", "value": 2.2}, {"date": "2021-12-31", "value": 2.3}, {"date": "2022-01-31", "value": 2.4}, {"date": "2022-02-28", "value": 2.8}, {"date": "2022-03-31", "value": 3.5}, {"date": "2022-04-30", "value": 2.9}, {"date": "2022-05-31", "value": 3.9}, {"date": "2022-06-30", "value": 4.1}, {"date": "2022-07-31", "value": 4.0}, {"date": "2022-08-31", "value": 6.6}, {"date": "2022-09-30", "value": 5.0}, {"date": "2022-10-31", "value": 3.9}, {"date": "2022-11-30", "value": 3.1}, {"date": "2022-12-31", "value": 1.6}, {"date": "2023-01-31", "value": 1.8}, {"date": "2023-02-28", "value": 1.7}, {"date": "2023-03-31", "value": 2.4}, {"date": "2023-04-30", "value": 2.4}, {"date": "2023-05-31", "value": 1.8}, {"date": "2023-06-30", "value": 3.1}, {"date": "2023-07-31", "value": 3.2}, {"date": "2023-08-31", "value": 3.1}, {"date": "2023-09-30", "value": 4.2}, {"date": "2023-10-31", "value": 4.2}, {"date": "2023-11-30", "value": 5.0}, {"date": "2023-12-31", "value": 5.3}, {"date": "2024-01-31", "value": 4.6}, {"date": "2024-02-29", "value": 5.3}, {"date": "2024-03-31", "value": 4.0}, {"date": "2024-04-30", "value": 3.1}, {"date": "2024-05-31", "value": 3.2}, {"date": "2024-06-30", "value": 2.0}, {"date": "2024-07-31", "value": 1.5}, {"date": "2024-08-31", "value": 1.7}, {"date": "2024-09-30", "value": 1.3}, {"date": "2024-10-31", "value": 3.0}, {"date": "2024-11-30", "value": 4.6}, {"date": "2024-12-31", "value": 5.5}, {"date": "2025-01-31", "value": 6.0}, {"date": "2025-02-28", "value": 6.0}, {"date": "2025-03-31", "value": 6.3}, {"date": "2025-04-30", "value": 5.9}, {"date": "2025-05-31", "value": 6.4}, {"date": "2025-06-30", "value": 7.3}, {"date": "2025-07-31", "value": 7.8}, {"date": "2025-08-31", "value": 9.2}, {"date": "2025-09-30", "value": 9.5}, {"date": "2025-10-31", "value": 8.5}], "SPMINDX": [{"date": "2017-09-30", "value": 51.8}, {"date": "2017-10-31", "value": 52.0}, {"date": "2017-11-30", "value": 52.6}, {"date": "2017-12-31", "value": 52.9}, {"date": "2018-01-31", "value": 52.8}, {"date": "2018-02-28", "value": 53.1}, {"date": "2018-03-31", "value": 52.7}, {"date": "2018-04-30", "value": 53.0}, {"date": "2018-05-31", "value": 52.9}, {"date": "2018-06-30", "value": 52.7}, {"date": "2018-07-31", "value": 52.5}, {"date": "2018-08-31", "value": 52.3}, {"date": "2018-09-30", "value": 52.6}, {"date": "2018-10-31", "value": 52.4}, {"date": "2018-11-30", "value": 51.9}, {"date": "2018-12-31", "value": 51.5}, {"date": "2019-01-31", "value": 51.1}, {"date": "2019-02-28", "value": 50.7}, {"date": "2019-03-31", "value": 50.4}, {"date": "2019-04-30", "value": 50.8}, {"date": "2019-05-31", "value": 50.3}, {"date": "2019-06-30", "value": 49.9}, {"date": "2019-07-31", "value": 49.6}, {"date": "2019-08-31", "value": 49.8}, {"date": "2019-09-30", "value": 49.9}, {"date": "2019-10-31", "value": 49.5}, {"date": "2019-11-30", "value": 49.6}, {"date": "2019-12-31", "value": 49.8}, {"date": "2020-01-31", "value": 50.1}, {"date": "2020-02-29", "value": 50.3}, {"date": "2020-03-31", "value": 48.7}, {"date": "2020-04-30", "value": 45.4}, {"date": "2020-05-31", "value": 44.7}, {"date": "2020-06-30", "value": 46.8}, {"date": "2020-07-31", "value": 48.0}, {"date": "2020-08-31", "value": 50.2}, {"date": "2020-09-30", "value": 50.1}, {"date": "2020-10-31", "value": 50.3}, {"date": "2020-11-30", "value": 50.5}, {"date": "2020-12-31", "value": 50.4}, {"date": "2021-01-31", "value": 50.5}, {"date": "2021-02-28", "value": 50.7}, {"date": "2021-03-31", "value": 50.5}, {"date": "2021-04-30", "value": 50.8}, {"date": "2021-05-31", "value": 50.9}, {"date": "2021-06-30", "value": 50.7}, {"date": "2021-07-31", "value": 50.8}, {"date": "2021-08-31", "value": 51.0}, {"date": "2021-09-30", "value": 50.9}, {"date": "2021-10-31", "value": 50.8}, {"date": "2021-11-30", "value": 50.8}, {"date": "2021-12-31", "value": 50.6}, {"date": "2022-01-31", "value": 50.7}, {"date": "2022-02-28", "value": 50.6}, {"date": "2022-03-31", "value": 50.2}, {"date": "2022-04-30", "value": 50.1}, {"date": "2022-05-31", "value": 50.3}, {"date": "2022-06-30", "value": 50.4}, {"date": "2022-07-31", "value": 50.3}, {"date": "2022-08-31", "value": 50.1}, {"date": "2022-09-30", "value": 50.0}, {"date": "2022-10-31", "value": 49.9}, {"date": "2022-11-30", "value": 49.7}, {"date": "2022-12-31", "value": 49.8}, {"date": "2023-01-31", "value": 49.7}, {"date": "2023-02-28", "value": 49.8}, {"date": "2023-03-31", "value": 50.0}, {"date": "2023-04-30", "value": 49.9}, {"date": "2023-05-31", "value": 49.7}, {"date": "2023-06-30", "value": 49.5}, {"date": "2023-07-31", "value": 49.7}, {"date": "2023-08-31", "value": 49.8}, {"date": "2023-09-30", "value": 49.9}, {"date": "2023-10-31", "value": 50.1}, {"date": "2023-11-30", "value": 50.2}, {"date": "2023-12-31", "value": 50.3}, {"date": "2024-01-31", "value": 50.5}, {"date": "2024-02-29", "value": 50.7}, {"date": "2024-03-31", "value": 50.6}, {"date": "2024-04-30", "value": 50.7}, {"date": "2024-05-31", "value": 50.5}, {"date": "2024-06-30", "value": 50.6}, {"date": "2024-07-31", "value": 50.4}, {"date": "2024-08-31", "value": 50.7}, {"date": "2024-09-30", "value": 50.9}, {"date": "2024-10-31", "value": 51.0}, {"date": "2024-11-30", "value": 50.8}, {"date": "2024-12-31", "value": 51.0}, {"date": "2025-01-31", "value": 51.1}, {"date": "2025-02-28", "value": 50.9}, {"date": "2025-03-31", "value": 50.7}, {"date": "2025-04-30", "value": 50.6}, {"date": "2025-05-31", "value": 49.6}, {"date": "2025-06-30", "value": 49.7}, {"date": "2025-07-31", "value": 50.0}, {"date": "2025-08-31", "value": 49.9}, {"date": "2025-09-30", "value": 50.0}, {"date": "2025-10-31", "value": 50.1}, {"date": "2025-11-30", "value": 50.0}], "GTSGD10Y": [{"date": "2017-08-31", "value": 2.1153333333333335}, {"date": "2017-09-30", "value": 2.056}, {"date": "2017-10-31", "value": 2.140090909090909}, {"date": "2017-11-30", "value": 2.1167727272727275}, {"date": "2017-12-31", "value": 2.024142857142857}, {"date": "2018-01-31", "value": 2.0939565217391305}, {"date": "2018-02-28", "value": 2.29535}, {"date": "2018-03-31", "value": 2.369181818181818}, {"date": "2018-04-30", "value": 2.409761904761905}, {"date": "2018-05-31", "value": 2.605086956521739}, {"date": "2018-06-30", "value": 2.562904761904762}, {"date": "2018-07-31", "value": 2.4314545454545455}, {"date": "2018-08-31", "value": 2.4111739130434784}, {"date": "2018-09-30", "value": 2.4657}, {"date": "2018-10-31", "value": 2.5565652173913045}, {"date": "2018-11-30", "value": 2.4470454545454547}, {"date": "2018-12-31", "value": 2.1797142857142857}, {"date": "2019-01-31", "value": 2.165391304347826}, {"date": "2019-02-28", "value": 2.1517500000000003}, {"date": "2019-03-31", "value": 2.1435238095238094}, {"date": "2019-04-30", "value": 2.116181818181818}, {"date": "2019-05-31", "value": 2.1469565217391304}, {"date": "2019-06-30", "value": 1.9970500000000002}, {"date": "2019-07-31", "value": 1.9358695652173912}, {"date": "2019-08-31", "value": 1.7367272727272727}, {"date": "2019-09-30", "value": 1.7220952380952381}, {"date": "2019-10-31", "value": 1.6967391304347825}, {"date": "2019-11-30", "value": 1.7495238095238097}, {"date": "2019-12-31", "value": 1.7354545454545454}, {"date": "2020-01-31", "value": 1.693}, {"date": "2020-02-29", "value": 1.6142499999999997}, {"date": "2020-03-31", "value": 1.3738636363636365}, {"date": "2020-04-30", "value": 1.0383636363636364}, {"date": "2020-05-31", "value": 0.7921904761904761}, {"date": "2020-06-30", "value": 0.9188636363636363}, {"date": "2020-07-31", "value": 0.8552173913043479}, {"date": "2020-08-31", "value": 0.8767619047619047}, {"date": "2020-09-30", "value": 0.8947272727272728}, {"date": "2020-10-31", "value": 0.8626818181818181}, {"date": "2020-11-30", "value": 0.8832857142857142}, {"date": "2020-12-31", "value": 0.8807826086956522}, {"date": "2021-01-31", "value": 0.9576666666666667}, {"date": "2021-02-28", "value": 1.13225}, {"date": "2021-03-31", "value": 1.5464782608695653}, {"date": "2021-04-30", "value": 1.6001818181818181}, {"date": "2021-05-31", "value": 1.5143809523809524}, {"date": "2021-06-30", "value": 1.4787142857142856}, {"date": "2021-07-31", "value": 1.4182727272727271}, {"date": "2021-08-31", "value": 1.379409090909091}, {"date": "2021-09-30", "value": 1.4392272727272728}, {"date": "2021-10-31", "value": 1.6938571428571427}, {"date": "2021-11-30", "value": 1.767409090909091}, {"date": "2021-12-31", "value": 1.6307826086956523}, {"date": "2022-01-31", "value": 1.7824285714285713}, {"date": "2022-02-28", "value": 1.8857500000000003}, {"date": "2022-03-31", "value": 2.073521739130435}, {"date": "2022-04-30", "value": 2.5144285714285712}, {"date": "2022-05-31", "value": 2.686681818181818}, {"date": "2022-06-30", "value": 2.9829545454545454}, {"date": "2022-07-31", "value": 2.7956499999999997}, {"date": "2022-08-31", "value": 2.731130434782609}, {"date": "2022-09-30", "value": 3.1939545454545453}, {"date": "2022-10-31", "value": 3.4692857142857143}, {"date": "2022-11-30", "value": 3.250318181818182}, {"date": "2022-12-31", "value": 2.964363636363636}, {"date": "2023-01-31", "value": 2.888181818181818}, {"date": "2023-02-28", "value": 3.1383}, {"date": "2023-03-31", "value": 3.064739130434783}, {"date": "2023-04-30", "value": 2.7984}, {"date": "2023-05-31", "value": 2.8082173913043476}, {"date": "2023-06-30", "value": 2.970863636363636}, {"date": "2023-07-31", "value": 3.036809523809524}, {"date": "2023-08-31", "value": 3.133608695652174}, {"date": "2023-09-30", "value": 3.2953809523809525}, {"date": "2023-10-31", "value": 3.380454545454546}, {"date": "2023-11-30", "value": 3.0515}, {"date": "2023-12-31", "value": 2.7935714285714286}, {"date": "2024-01-31", "value": 2.8553913043478256}, {"date": "2024-02-29", "value": 3.022666666666667}, {"date": "2024-03-31", "value": 3.052666666666666}, {"date": "2024-04-30", "value": 3.315318181818182}, {"date": "2024-05-31", "value": 3.2881818181818185}, {"date": "2024-06-30", "value": 3.20665}, {"date": "2024-07-31", "value": 3.086391304347826}, {"date": "2024-08-31", "value": 2.759}, {"date": "2024-09-30", "value": 2.5459047619047617}, {"date": "2024-10-31", "value": 2.799695652173913}, {"date": "2024-11-30", "value": 2.8509523809523807}, {"date": "2024-12-31", "value": 2.8095}, {"date": "2025-01-31", "value": 2.9495652173913043}, {"date": "2025-02-28", "value": 2.8411}, {"date": "2025-03-31", "value": 2.6815714285714285}, {"date": "2025-04-30", "value": 2.5528636363636363}, {"date": "2025-05-31", "value": 2.4712380952380952}, {"date": "2025-06-30", "value": 2.2809999999999997}, {"date": "2025-07-31", "value": 2.100217391304348}, {"date": "2025-08-31", "value": 1.9165714285714284}, {"date": "2025-09-30", "value": 1.8177727272727273}, {"date": "2025-10-31", "value": 1.8245652173913043}, {"date": "2025-11-30", "value": 1.8525333333333334}], "USDSGD": [{"date": "2017-08-31", "value": 1.3583333333333334}, {"date": "2017-09-30", "value": 1.3502619047619047}, {"date": "2017-10-31", "value": 1.3596772727272728}, {"date": "2017-11-30", "value": 1.3553636363636363}, {"date": "2017-12-31", "value": 1.345995238095238}, {"date": "2018-01-31", "value": 1.3215181818181818}, {"date": "2018-02-28", "value": 1.319645}, {"date": "2018-03-31", "value": 1.3148}, {"date": "2018-04-30", "value": 1.3159571428571428}, {"date": "2018-05-31", "value": 1.339373913043478}, {"date": "2018-06-30", "value": 1.3487142857142858}, {"date": "2018-07-31", "value": 1.3631772727272726}, {"date": "2018-08-31", "value": 1.368904347826087}, {"date": "2018-09-30", "value": 1.371035}, {"date": "2018-10-31", "value": 1.3799}, {"date": "2018-11-30", "value": 1.3752}, {"date": "2018-12-31", "value": 1.3707047619047619}, {"date": "2019-01-31", "value": 1.3563782608695651}, {"date": "2019-02-28", "value": 1.3538999999999999}, {"date": "2019-03-31", "value": 1.3542380952380952}, {"date": "2019-04-30", "value": 1.3561636363636362}, {"date": "2019-05-31", "value": 1.3710913043478261}, {"date": "2019-06-30", "value": 1.36213}, {"date": "2019-07-31", "value": 1.3614652173913044}, {"date": "2019-08-31", "value": 1.3851272727272728}, {"date": "2019-09-30", "value": 1.3798142857142857}, {"date": "2019-10-31", "value": 1.3704304347826086}, {"date": "2019-11-30", "value": 1.3617904761904762}, {"date": "2019-12-31", "value": 1.3564}, {"date": "2020-01-31", "value": 1.3511434782608696}, {"date": "2020-02-29", "value": 1.38998}, {"date": "2020-03-31", "value": 1.4170954545454546}, {"date": "2020-04-30", "value": 1.4230954545454546}, {"date": "2020-05-31", "value": 1.4183000000000001}, {"date": "2020-06-30", "value": 1.3938090909090908}, {"date": "2020-07-31", "value": 1.387082608695652}, {"date": "2020-08-31", "value": 1.3692380952380954}, {"date": "2020-09-30", "value": 1.3661727272727273}, {"date": "2020-10-31", "value": 1.3600727272727273}, {"date": "2020-11-30", "value": 1.3472}, {"date": "2020-12-31", "value": 1.3323130434782608}, {"date": "2021-01-31", "value": 1.3257714285714286}, {"date": "2021-02-28", "value": 1.32776}, {"date": "2021-03-31", "value": 1.3424565217391304}, {"date": "2021-04-30", "value": 1.3346636363636364}, {"date": "2021-05-31", "value": 1.3295333333333335}, {"date": "2021-06-30", "value": 1.3339999999999999}, {"date": "2021-07-31", "value": 1.3549318181818182}, {"date": "2021-08-31", "value": 1.3548272727272728}, {"date": "2021-09-30", "value": 1.3480727272727273}, {"date": "2021-10-31", "value": 1.3511523809523809}, {"date": "2021-11-30", "value": 1.3571136363636365}, {"date": "2021-12-31", "value": 1.3627434782608696}, {"date": "2022-01-31", "value": 1.3507285714285715}, {"date": "2022-02-28", "value": 1.34674}, {"date": "2022-03-31", "value": 1.3587391304347827}, {"date": "2022-04-30", "value": 1.3664619047619047}, {"date": "2022-05-31", "value": 1.3820772727272728}, {"date": "2022-06-30", "value": 1.384640909090909}, {"date": "2022-07-31", "value": 1.3954523809523809}, {"date": "2022-08-31", "value": 1.384382608695652}, {"date": "2022-09-30", "value": 1.414240909090909}, {"date": "2022-10-31", "value": 1.4237238095238094}, {"date": "2022-11-30", "value": 1.3856454545454546}, {"date": "2022-12-31", "value": 1.3519954545454544}, {"date": "2023-01-31", "value": 1.3253636363636365}, {"date": "2023-02-28", "value": 1.332225}, {"date": "2023-03-31", "value": 1.3405347826086957}, {"date": "2023-04-30", "value": 1.331555}, {"date": "2023-05-31", "value": 1.3399391304347825}, {"date": "2023-06-30", "value": 1.3462818181818184}, {"date": "2023-07-31", "value": 1.3342285714285713}, {"date": "2023-08-31", "value": 1.3509304347826088}, {"date": "2023-09-30", "value": 1.3637333333333335}, {"date": "2023-10-31", "value": 1.3688818181818183}, {"date": "2023-11-30", "value": 1.3479999999999999}, {"date": "2023-12-31", "value": 1.331695238095238}, {"date": "2024-01-31", "value": 1.3361863636363636}, {"date": "2024-02-29", "value": 1.3449571428571427}, {"date": "2024-03-31", "value": 1.3406714285714285}, {"date": "2024-04-30", "value": 1.3570181818181817}, {"date": "2024-05-31", "value": 1.3510434782608696}, {"date": "2024-06-30", "value": 1.351965}, {"date": "2024-07-31", "value": 1.3461652173913043}, {"date": "2024-08-31", "value": 1.3153227272727273}, {"date": "2024-09-30", "value": 1.2960380952380952}, {"date": "2024-10-31", "value": 1.3107347826086957}, {"date": "2024-11-30", "value": 1.3366761904761906}, {"date": "2024-12-31", "value": 1.351709090909091}, {"date": "2025-01-31", "value": 1.360913043478261}, {"date": "2025-02-28", "value": 1.34614}, {"date": "2025-03-31", "value": 1.3357095238095238}, {"date": "2025-04-30", "value": 1.3234227272727273}, {"date": "2025-05-31", "value": 1.294859090909091}, {"date": "2025-06-30", "value": 1.2831428571428571}, {"date": "2025-07-31", "value": 1.2817260869565217}, {"date": "2025-08-31", "value": 1.2850619047619047}, {"date": "2025-09-30", "value": 1.2849363636363635}, {"date": "2025-10-31", "value": 1.295808695652174}, {"date": "2025-11-30", "value": 1.3037866666666666}], "SIBCSORA": [{"date": "2017-08-31", "value": 0.8360777777777778}, {"date": "2017-09-30", "value": 0.6219699999999999}, {"date": "2017-10-31", "value": 0.8626380952380953}, {"date": "2017-11-30", "value": 0.7013181818181818}, {"date": "2017-12-31", "value": 0.90601}, {"date": "2018-01-31", "value": 0.34804545454545455}, {"date": "2018-02-28", "value": 0.9888052631578949}, {"date": "2018-03-31", "value": 0.685695238095238}, {"date": "2018-04-30", "value": 0.6709047619047619}, {"date": "2018-05-31", "value": 1.0585238095238094}, {"date": "2018-06-30", "value": 0.8958299999999999}, {"date": "2018-07-31", "value": 1.1956909090909091}, {"date": "2018-08-31", "value": 1.388095238095238}, {"date": "2018-09-30", "value": 1.01086}, {"date": "2018-10-31", "value": 1.1914434782608694}, {"date": "2018-11-30", "value": 1.4980571428571428}, {"date": "2018-12-31", "value": 1.5994}, {"date": "2019-01-31", "value": 1.4628772727272727}, {"date": "2019-02-28", "value": 1.6495333333333333}, {"date": "2019-03-31", "value": 1.444604761904762}, {"date": "2019-04-30", "value": 1.6899095238095239}, {"date": "2019-05-31", "value": 1.8166}, {"date": "2019-06-30", "value": 1.5379736842105263}, {"date": "2019-07-31", "value": 1.5620391304347827}, {"date": "2019-08-31", "value": 1.579835}, {"date": "2019-09-30", "value": 1.4054714285714287}, {"date": "2019-10-31", "value": 1.33755}, {"date": "2019-11-30", "value": 1.1463285714285714}, {"date": "2019-12-31", "value": 1.2012}, {"date": "2020-01-31", "value": 1.1120476190476192}, {"date": "2020-02-29", "value": 0.98018}, {"date": "2020-03-31", "value": 0.45622727272727276}, {"date": "2020-04-30", "value": 0.24903809523809523}, {"date": "2020-05-31", "value": 0.051383333333333336}, {"date": "2020-06-30", "value": 0.09638181818181818}, {"date": "2020-07-31", "value": 0.0861952380952381}, {"date": "2020-08-31", "value": 0.09836500000000001}, {"date": "2020-09-30", "value": 0.09223636363636363}, {"date": "2020-10-31", "value": 0.1277}, {"date": "2020-11-30", "value": 0.10351428571428571}, {"date": "2020-12-31", "value": 0.17489545454545452}, {"date": "2021-01-31", "value": 0.146095}, {"date": "2021-02-28", "value": 0.17832105263157896}, {"date": "2021-03-31", "value": 0.20998695652173913}, {"date": "2021-04-30", "value": 0.11748571428571429}, {"date": "2021-05-31", "value": 0.13822105263157894}, {"date": "2021-06-30", "value": 0.12177272727272727}, {"date": "2021-07-31", "value": 0.11425714285714286}, {"date": "2021-08-31", "value": 0.13033333333333333}, {"date": "2021-09-30", "value": 0.12654545454545454}, {"date": "2021-10-31", "value": 0.18153809523809525}, {"date": "2021-11-30", "value": 0.15343333333333334}, {"date": "2021-12-31", "value": 0.21910869565217392}, {"date": "2022-01-31", "value": 0.21324761904761905}, {"date": "2022-02-28", "value": 0.27492777777777777}, {"date": "2022-03-31", "value": 0.2976782608695652}, {"date": "2022-04-30", "value": 0.307685}, {"date": "2022-05-31", "value": 0.8892105263157895}, {"date": "2022-06-30", "value": 1.0044681818181818}, {"date": "2022-07-31", "value": 1.806965}, {"date": "2022-08-31", "value": 1.8924863636363638}, {"date": "2022-09-30", "value": 2.3095590909090906}, {"date": "2022-10-31", "value": 3.06751}, {"date": "2022-11-30", "value": 3.2429636363636365}, {"date": "2022-12-31", "value": 2.5468190476190475}, {"date": "2023-01-31", "value": 3.3863157894736844}, {"date": "2023-02-28", "value": 3.47701}, {"date": "2023-03-31", "value": 3.668678260869565}, {"date": "2023-04-30", "value": 3.4840526315789475}, {"date": "2023-05-31", "value": 3.633381818181818}, {"date": "2023-06-30", "value": 3.7310049999999997}, {"date": "2023-07-31", "value": 3.5803190476190476}, {"date": "2023-08-31", "value": 3.648877272727273}, {"date": "2023-09-30", "value": 3.74754}, {"date": "2023-10-31", "value": 3.734122727272727}, {"date": "2023-11-30", "value": 3.6272190476190476}, {"date": "2023-12-31", "value": 3.6500999999999997}, {"date": "2024-01-31", "value": 3.620486363636364}, {"date": "2024-02-29", "value": 3.6341}, {"date": "2024-03-31", "value": 3.7290300000000003}, {"date": "2024-04-30", "value": 3.5048666666666666}, {"date": "2024-05-31", "value": 3.6722666666666663}, {"date": "2024-06-30", "value": 3.656026315789474}, {"date": "2024-07-31", "value": 3.5116652173913043}, {"date": "2024-08-31", "value": 3.4690476190476187}, {"date": "2024-09-30", "value": 3.4240571428571425}, {"date": "2024-10-31", "value": 3.1966909090909095}, {"date": "2024-11-30", "value": 2.979438095238095}, {"date": "2024-12-31", "value": 2.9021190476190477}, {"date": "2025-01-31", "value": 2.764395}, {"date": "2025-02-28", "value": 2.46924}, {"date": "2025-03-31", "value": 2.39531}, {"date": "2025-04-30", "value": 2.234409523809524}, {"date": "2025-05-31", "value": 2.17937}, {"date": "2025-06-30", "value": 1.7155238095238097}, {"date": "2025-07-31", "value": 1.6145304347826086}, {"date": "2025-08-31", "value": 1.3739285714285714}, {"date": "2025-09-30", "value": 1.3324772727272727}, {"date": "2025-10-31", "value": 1.1964545454545454}, {"date": "2025-11-30", "value": 1.0555214285714285}], "SIEXEYOY": [{"date": "2017-09-30", "value": 20.7}, {"date": "2017-10-31", "value": -7.6}, {"date": "2017-11-30", "value": 4.7}, {"date": "2017-12-31", "value": 5.1}, {"date": "2018-01-31", "value": -5.3}, {"date": "2018-02-28", "value": -4.0}, {"date": "2018-03-31", "value": -12.7}, {"date": "2018-04-30", "value": -7.5}, {"date": "2018-05-31", "value": -6.9}, {"date": "2018-06-30", "value": -7.8}, {"date": "2018-07-31", "value": -8.6}, {"date": "2018-08-31", "value": -6.6}, {"date": "2018-09-30", "value": -1.6}, {"date": "2018-10-31", "value": -1.7}, {"date": "2018-11-30", "value": -4.0}, {"date": "2018-12-31", "value": 4.3}, {"date": "2019-01-31", "value": -11.2}, {"date": "2019-02-28", "value": -16.0}, {"date": "2019-03-31", "value": -8.4}, {"date": "2019-04-30", "value": -26.9}, {"date": "2019-05-31", "value": -16.5}, {"date": "2019-06-30", "value": -31.7}, {"date": "2019-07-31", "value": -32.0}, {"date": "2019-08-31", "value": -24.3}, {"date": "2019-09-30", "value": -25.9}, {"date": "2019-10-31", "value": -24.8}, {"date": "2019-11-30", "value": -16.4}, {"date": "2019-12-31", "value": -23.3}, {"date": "2020-01-31", "value": -21.3}, {"date": "2020-02-29", "value": -13.0}, {"date": "2020-03-31", "value": 2.5}, {"date": "2020-04-30", "value": 5.8}, {"date": "2020-05-31", "value": -0.6}, {"date": "2020-06-30", "value": 11.9}, {"date": "2020-07-31", "value": 22.2}, {"date": "2020-08-31", "value": 2.1}, {"date": "2020-09-30", "value": 5.7}, {"date": "2020-10-31", "value": 21.4}, {"date": "2020-11-30", "value": -0.5}, {"date": "2020-12-31", "value": -4.0}, {"date": "2021-01-31", "value": 13.7}, {"date": "2021-02-28", "value": 13.5}, {"date": "2021-03-31", "value": 7.3}, {"date": "2021-04-30", "value": 24.4}, {"date": "2021-05-31", "value": 10.9}, {"date": "2021-06-30", "value": 11.0}, {"date": "2021-07-31", "value": 25.5}, {"date": "2021-08-31", "value": 15.0}, {"date": "2021-09-30", "value": 16.7}, {"date": "2021-10-31", "value": 14.1}, {"date": "2021-11-30", "value": 14.9}, {"date": "2021-12-31", "value": 29.2}, {"date": "2022-01-31", "value": 13.6}, {"date": "2022-02-28", "value": 14.0}, {"date": "2022-03-31", "value": 11.6}, {"date": "2022-04-30", "value": 11.5}, {"date": "2022-05-31", "value": 12.8}, {"date": "2022-06-30", "value": 12.9}, {"date": "2022-07-31", "value": 4.1}, {"date": "2022-08-31", "value": 10.3}, {"date": "2022-09-30", "value": -4.5}, {"date": "2022-10-31", "value": -10.6}, {"date": "2022-11-30", "value": -9.3}, {"date": "2022-12-31", "value": -20.2}, {"date": "2023-01-31", "value": -17.9}, {"date": "2023-02-28", "value": -26.8}, {"date": "2023-03-31", "value": -26.5}, {"date": "2023-04-30", "value": -22.3}, {"date": "2023-05-31", "value": -23.3}, {"date": "2023-06-30", "value": -27.2}, {"date": "2023-07-31", "value": -16.0}, {"date": "2023-08-31", "value": -26.2}, {"date": "2023-09-30", "value": -21.1}, {"date": "2023-10-31", "value": -11.7}, {"date": "2023-11-30", "value": -5.6}, {"date": "2023-12-31", "value": -12.8}, {"date": "2024-01-31", "value": -11.7}, {"date": "2024-02-29", "value": 0.6}, {"date": "2024-03-31", "value": 5.2}, {"date": "2024-04-30", "value": -9.5}, {"date": "2024-05-31", "value": 3.3}, {"date": "2024-06-30", "value": 19.6}, {"date": "2024-07-31", "value": -9.5}, {"date": "2024-08-31", "value": 16.7}, {"date": "2024-09-30", "value": 32.8}, {"date": "2024-10-31", "value": -0.7}, {"date": "2024-11-30", "value": 2.5}, {"date": "2024-12-31", "value": 23.1}, {"date": "2025-01-31", "value": 18.6}, {"date": "2025-02-28", "value": 9.5}, {"date": "2025-03-31", "value": 6.9}, {"date": "2025-04-30", "value": 12.2}, {"date": "2025-05-31", "value": 23.4}, {"date": "2025-06-30", "value": 1.6}, {"date": "2025-07-31", "value": 8.0}, {"date": "2025-08-31", "value": 2.7}, {"date": "2025-09-30", "value": -6.5}, {"date": "2025-10-31", "value": 30.4}, {"date": "2025-11-30", "value": 33.2}], "STI": [{"date": "2017-08-31", "value": 3262.448888888889}, {"date": "2017-09-30", "value": 3226.374}, {"date": "2017-10-31", "value": 3315.7033333333334}, {"date": "2017-11-30", "value": 3408.2627272727273}, {"date": "2017-12-31", "value": 3416.8894999999998}, {"date": "2018-01-31", "value": 3533.9190909090908}, {"date": "2018-02-28", "value": 3468.746842105263}, {"date": "2018-03-31", "value": 3481.025238095238}, {"date": "2018-04-30", "value": 3505.4933333333333}, {"date": "2018-05-31", "value": 3532.899047619048}, {"date": "2018-06-30", "value": 3361.4235}, {"date": "2018-07-31", "value": 3268.9300000000003}, {"date": "2018-08-31", "value": 3251.682857142857}, {"date": "2018-09-30", "value": 3177.3905}, {"date": "2018-10-31", "value": 3094.770434782609}, {"date": "2018-11-30", "value": 3071.7804761904763}, {"date": "2018-12-31", "value": 3085.2545}, {"date": "2019-01-31", "value": 3166.350909090909}, {"date": "2019-02-28", "value": 3237.205}, {"date": "2019-03-31", "value": 3210.306666666667}, {"date": "2019-04-30", "value": 3335.907142857143}, {"date": "2019-05-31", "value": 3227.8771428571426}, {"date": "2019-06-30", "value": 3240.2673684210527}, {"date": "2019-07-31", "value": 3357.181304347826}, {"date": "2019-08-31", "value": 3140.4825}, {"date": "2019-09-30", "value": 3151.281428571429}, {"date": "2019-10-31", "value": 3134.9300000000003}, {"date": "2019-11-30", "value": 3234.7266666666665}, {"date": "2019-12-31", "value": 3199.084285714286}, {"date": "2020-01-31", "value": 3237.5466666666666}, {"date": "2020-02-29", "value": 3171.602}, {"date": "2020-03-31", "value": 2629.7854545454543}, {"date": "2020-04-30", "value": 2549.605238095238}, {"date": "2020-05-31", "value": 2552.7783333333336}, {"date": "2020-06-30", "value": 2663.8577272727275}, {"date": "2020-07-31", "value": 2619.498095238095}, {"date": "2020-08-31", "value": 2545.318}, {"date": "2020-09-30", "value": 2493.8136363636363}, {"date": "2020-10-31", "value": 2520.3577272727275}, {"date": "2020-11-30", "value": 2719.4723809523807}, {"date": "2020-12-31", "value": 2839.700909090909}, {"date": "2021-01-31", "value": 2955.9795000000004}, {"date": "2021-02-28", "value": 2919.347894736842}, {"date": "2021-03-31", "value": 3098.0200000000004}, {"date": "2021-04-30", "value": 3195.7623809523807}, {"date": "2021-05-31", "value": 3143.5384210526317}, {"date": "2021-06-30", "value": 3143.863181818182}, {"date": "2021-07-31", "value": 3144.6814285714286}, {"date": "2021-08-31", "value": 3134.1195238095233}, {"date": "2021-09-30", "value": 3076.745909090909}, {"date": "2021-10-31", "value": 3153.2661904761903}, {"date": "2021-11-30", "value": 3216.2595238095237}, {"date": "2021-12-31", "value": 3113.8734782608694}, {"date": "2022-01-31", "value": 3244.5861904761905}, {"date": "2022-02-28", "value": 3382.648333333333}, {"date": "2022-03-31", "value": 3306.024782608696}, {"date": "2022-04-30", "value": 3359.6410000000005}, {"date": "2022-05-31", "value": 3233.3863157894734}, {"date": "2022-06-30", "value": 3152.4586363636363}, {"date": "2022-07-31", "value": 3145.096}, {"date": "2022-08-31", "value": 3255.793181818182}, {"date": "2022-09-30", "value": 3223.6463636363637}, {"date": "2022-10-31", "value": 3064.473}, {"date": "2022-11-30", "value": 3217.701363636363}, {"date": "2022-12-31", "value": 3257.679047619047}, {"date": "2023-01-31", "value": 3302.681052631579}, {"date": "2023-02-28", "value": 3327.6575}, {"date": "2023-03-31", "value": 3210.38}, {"date": "2023-04-30", "value": 3302.252105263158}, {"date": "2023-05-31", "value": 3220.391818181818}, {"date": "2023-06-30", "value": 3205.6189999999997}, {"date": "2023-07-31", "value": 3244.6285714285714}, {"date": "2023-08-31", "value": 3243.1731818181815}, {"date": "2023-09-30", "value": 3225.678}, {"date": "2023-10-31", "value": 3135.039090909091}, {"date": "2023-11-30", "value": 3112.520476190476}, {"date": "2023-12-31", "value": 3120.806}, {"date": "2024-01-31", "value": 3170.5772727272724}, {"date": "2024-02-29", "value": 3170.194}, {"date": "2024-03-31", "value": 3174.9766666666665}, {"date": "2024-04-30", "value": 3230.3528571428574}, {"date": "2024-05-31", "value": 3306.284285714286}, {"date": "2024-06-30", "value": 3321.0673684210524}, {"date": "2024-07-31", "value": 3443.0495652173913}, {"date": "2024-08-31", "value": 3337.9966666666664}, {"date": "2024-09-30", "value": 3550.3390476190475}, {"date": "2024-10-31", "value": 3591.4152173913044}, {"date": "2024-11-30", "value": 3700.5661904761905}, {"date": "2024-12-31", "value": 3784.9272727272723}, {"date": "2025-01-31", "value": 3809.381818181818}, {"date": "2025-02-28", "value": 3885.887}, {"date": "2025-03-31", "value": 3904.464}, {"date": "2025-04-30", "value": 3725.4152380952382}, {"date": "2025-05-31", "value": 3879.4550000000004}, {"date": "2025-06-30", "value": 3918.0776190476195}, {"date": "2025-07-31", "value": 4134.412608695652}, {"date": "2025-08-31", "value": 4232.138571428572}, {"date": "2025-09-30", "value": 4306.187272727272}, {"date": "2025-10-31", "value": 4407.109090909091}, {"date": "2025-11-30", "value": 4501.140666666667}], "SMASCORE": [{"date": "2017-08-31", "value": 1.6}, {"date": "2017-09-30", "value": 1.4}, {"date": "2017-10-31", "value": 1.5}, {"date": "2017-11-30", "value": 1.5}, {"date": "2017-12-31", "value": 1.5}, {"date": "2018-01-31", "value": 1.3}, {"date": "2018-02-28", "value": 1.4}, {"date": "2018-03-31", "value": 1.7}, {"date": "2018-04-30", "value": 1.5}, {"date": "2018-05-31", "value": 1.3}, {"date": "2018-06-30", "value": 1.5}, {"date": "2018-07-31", "value": 1.7}, {"date": "2018-08-31", "value": 1.9}, {"date": "2018-09-30", "value": 1.9}, {"date": "2018-10-31", "value": 1.8}, {"date": "2018-11-30", "value": 1.9}, {"date": "2018-12-31", "value": 1.7}, {"date": "2019-01-31", "value": 1.9}, {"date": "2019-02-28", "value": 1.9}, {"date": "2019-03-31", "value": 1.7}, {"date": "2019-04-30", "value": 1.7}, {"date": "2019-05-31", "value": 1.4}, {"date": "2019-06-30", "value": 1.3}, {"date": "2019-07-31", "value": 1.1}, {"date": "2019-08-31", "value": 0.6}, {"date": "2019-09-30", "value": 0.7}, {"date": "2019-10-31", "value": 0.6}, {"date": "2019-11-30", "value": 0.5}, {"date": "2019-12-31", "value": 0.6}, {"date": "2020-01-31", "value": 0.6}, {"date": "2020-02-29", "value": 0.3}, {"date": "2020-03-31", "value": -0.1}, {"date": "2020-04-30", "value": -0.2}, {"date": "2020-05-31", "value": -0.3}, {"date": "2020-06-30", "value": -0.2}, {"date": "2020-07-31", "value": -0.2}, {"date": "2020-08-31", "value": -0.4}, {"date": "2020-09-30", "value": -0.3}, {"date": "2020-10-31", "value": -0.1}, {"date": "2020-11-30", "value": -0.1}, {"date": "2020-12-31", "value": -0.1}, {"date": "2021-01-31", "value": -0.3}, {"date": "2021-02-28", "value": -0.1}, {"date": "2021-03-31", "value": 0.2}, {"date": "2021-04-30", "value": 0.5}, {"date": "2021-05-31", "value": 0.6}, {"date": "2021-06-30", "value": 0.8}, {"date": "2021-07-31", "value": 0.6}, {"date": "2021-08-31", "value": 1.1}, {"date": "2021-09-30", "value": 1.2}, {"date": "2021-10-31", "value": 1.2}, {"date": "2021-11-30", "value": 1.5}, {"date": "2021-12-31", "value": 1.7}, {"date": "2022-01-31", "value": 2.1}, {"date": "2022-02-28", "value": 2.4}, {"date": "2022-03-31", "value": 2.2}, {"date": "2022-04-30", "value": 2.9}, {"date": "2022-05-31", "value": 3.3}, {"date": "2022-06-30", "value": 3.6}, {"date": "2022-07-31", "value": 4.4}, {"date": "2022-08-31", "value": 4.8}, {"date": "2022-09-30", "value": 5.1}, {"date": "2022-10-31", "value": 5.3}, {"date": "2022-11-30", "value": 5.1}, {"date": "2022-12-31", "value": 5.1}, {"date": "2023-01-31", "value": 5.1}, {"date": "2023-02-28", "value": 5.6}, {"date": "2023-03-31", "value": 5.5}, {"date": "2023-04-30", "value": 5.1}, {"date": "2023-05-31", "value": 5.0}, {"date": "2023-06-30", "value": 4.7}, {"date": "2023-07-31", "value": 4.2}, {"date": "2023-08-31", "value": 3.8}, {"date": "2023-09-30", "value": 3.4}, {"date": "2023-10-31", "value": 3.1}, {"date": "2023-11-30", "value": 3.3}, {"date": "2023-12-31", "value": 3.2}, {"date": "2024-01-31", "value": 3.3}, {"date": "2024-02-29", "value": 3.3}, {"date": "2024-03-31", "value": 3.6}, {"date": "2024-04-30", "value": 3.2}, {"date": "2024-05-31", "value": 3.1}, {"date": "2024-06-30", "value": 3.1}, {"date": "2024-07-31", "value": 2.9}, {"date": "2024-08-31", "value": 2.6}, {"date": "2024-09-30", "value": 2.7}, {"date": "2024-10-31", "value": 2.8}, {"date": "2024-11-30", "value": 2.1}, {"date": "2024-12-31", "value": 1.9}, {"date": "2025-01-31", "value": 1.7}, {"date": "2025-02-28", "value": 0.8}, {"date": "2025-03-31", "value": 0.6}, {"date": "2025-04-30", "value": 0.5}, {"date": "2025-05-31", "value": 0.7}, {"date": "2025-06-30", "value": 0.6}, {"date": "2025-07-31", "value": 0.6}, {"date": "2025-08-31", "value": 0.5}, {"date": "2025-09-30", "value": 0.3}, {"date": "2025-10-31", "value": 0.4}], "SGDPYOY": [{"date": "2017-11-30", "value": 5.2}, {"date": "2018-02-28", "value": 4.4}, {"date": "2018-05-31", "value": 4.6}, {"date": "2018-08-31", "value": 4.7}, {"date": "2018-11-30", "value": 3.1}, {"date": "2019-02-28", "value": 1.5}, {"date": "2019-05-31", "value": 1.6}, {"date": "2019-08-31", "value": 1.4}, {"date": "2019-11-30", "value": 0.7}, {"date": "2020-02-29", "value": 1.6}, {"date": "2020-05-31", "value": 1.3}, {"date": "2020-08-31", "value": -11.9}, {"date": "2020-11-30", "value": -4.2}, {"date": "2021-02-28", "value": -0.4}, {"date": "2021-05-31", "value": 4.4}, {"date": "2021-08-31", "value": 18.3}, {"date": "2021-11-30", "value": 9.5}, {"date": "2022-02-28", "value": 7.9}, {"date": "2022-05-31", "value": 4.3}, {"date": "2022-08-31", "value": 4.9}, {"date": "2022-11-30", "value": 4.5}, {"date": "2023-02-28", "value": 2.7}, {"date": "2023-05-31", "value": 1.0}, {"date": "2023-08-31", "value": 1.3}, {"date": "2023-11-30", "value": 1.9}, {"date": "2024-02-29", "value": 3.1}, {"date": "2024-05-31", "value": 3.2}, {"date": "2024-08-31", "value": 3.4}, {"date": "2024-11-30", "value": 5.7}, {"date": "2025-02-28", "value": 5.0}, {"date": "2025-05-31", "value": 4.1}, {"date": "2025-08-31", "value": 4.7}, {"date": "2025-11-30", "value": 4.2}], "SNEER": [{"date": "2017-08-31", "value": 125.12}, {"date": "2017-09-30", "value": 125.31800000000001}, {"date": "2017-10-31", "value": 125.4275}, {"date": "2017-11-30", "value": 125.6}, {"date": "2017-12-31", "value": 125.72200000000001}, {"date": "2018-01-31", "value": 125.74}, {"date": "2018-02-28", "value": 125.0875}, {"date": "2018-03-31", "value": 125.48800000000001}, {"date": "2018-04-30", "value": 125.6725}, {"date": "2018-05-31", "value": 125.565}, {"date": "2018-06-30", "value": 125.72999999999999}, {"date": "2018-07-31", "value": 125.86500000000001}, {"date": "2018-08-31", "value": 126.30199999999999}, {"date": "2018-09-30", "value": 126.3175}, {"date": "2018-10-31", "value": 126.4925}, {"date": "2018-11-30", "value": 126.84400000000001}, {"date": "2018-12-31", "value": 127.0025}, {"date": "2019-01-31", "value": 127.2025}, {"date": "2019-02-28", "value": 127.2625}, {"date": "2019-03-31", "value": 127.40599999999999}, {"date": "2019-04-30", "value": 127.5675}, {"date": "2019-05-31", "value": 127.324}, {"date": "2019-06-30", "value": 127.6325}, {"date": "2019-07-31", "value": 127.66499999999999}, {"date": "2019-08-31", "value": 126.874}, {"date": "2019-09-30", "value": 127.4325}, {"date": "2019-10-31", "value": 127.88}, {"date": "2019-11-30", "value": 128.252}, {"date": "2019-12-31", "value": 128.305}, {"date": "2020-01-31", "value": 128.292}, {"date": "2020-02-29", "value": 126.1125}, {"date": "2020-03-31", "value": 125.3275}, {"date": "2020-04-30", "value": 125.505}, {"date": "2020-05-31", "value": 125.518}, {"date": "2020-06-30", "value": 125.775}, {"date": "2020-07-31", "value": 125.556}, {"date": "2020-08-31", "value": 125.705}, {"date": "2020-09-30", "value": 125.6525}, {"date": "2020-10-31", "value": 125.774}, {"date": "2020-11-30", "value": 125.6}, {"date": "2020-12-31", "value": 125.4375}, {"date": "2021-01-31", "value": 125.50399999999999}, {"date": "2021-02-28", "value": 125.49}, {"date": "2021-03-31", "value": 125.3825}, {"date": "2021-04-30", "value": 126.322}, {"date": "2021-05-31", "value": 125.8925}, {"date": "2021-06-30", "value": 126.025}, {"date": "2021-07-31", "value": 125.478}, {"date": "2021-08-31", "value": 125.6125}, {"date": "2021-09-30", "value": 126.16499999999999}, {"date": "2021-10-31", "value": 126.21399999999998}, {"date": "2021-11-30", "value": 126.1375}, {"date": "2021-12-31", "value": 126.06199999999998}, {"date": "2022-01-31", "value": 127.02}, {"date": "2022-02-28", "value": 127.435}, {"date": "2022-03-31", "value": 127.16}, {"date": "2022-04-30", "value": 128.244}, {"date": "2022-05-31", "value": 129.57999999999998}, {"date": "2022-06-30", "value": 130.1}, {"date": "2022-07-31", "value": 130.878}, {"date": "2022-08-31", "value": 132.1275}, {"date": "2022-09-30", "value": 132.496}, {"date": "2022-10-31", "value": 133.845}, {"date": "2022-11-30", "value": 135.21}, {"date": "2022-12-31", "value": 135.068}, {"date": "2023-01-31", "value": 135.4225}, {"date": "2023-02-28", "value": 135.745}, {"date": "2023-03-31", "value": 135.82999999999998}, {"date": "2023-04-30", "value": 135.8}, {"date": "2023-05-31", "value": 136.0225}, {"date": "2023-06-30", "value": 136.33800000000002}, {"date": "2023-07-31", "value": 136.89}, {"date": "2023-08-31", "value": 136.7725}, {"date": "2023-09-30", "value": 137.026}, {"date": "2023-10-31", "value": 137.5025}, {"date": "2023-11-30", "value": 137.935}, {"date": "2023-12-31", "value": 138.178}, {"date": "2024-01-31", "value": 138.275}, {"date": "2024-02-29", "value": 138.48}, {"date": "2024-03-31", "value": 138.712}, {"date": "2024-04-30", "value": 138.6775}, {"date": "2024-05-31", "value": 138.86599999999999}, {"date": "2024-06-30", "value": 139.1425}, {"date": "2024-07-31", "value": 139.365}, {"date": "2024-08-31", "value": 139.48000000000002}, {"date": "2024-09-30", "value": 139.6175}, {"date": "2024-10-31", "value": 139.7125}, {"date": "2024-11-30", "value": 139.324}, {"date": "2024-12-31", "value": 139.0225}, {"date": "2025-01-31", "value": 138.91}, {"date": "2025-02-28", "value": 139.57999999999998}, {"date": "2025-03-31", "value": 139.575}, {"date": "2025-04-30", "value": 139.4975}, {"date": "2025-05-31", "value": 140.72}, {"date": "2025-06-30", "value": 141.0225}, {"date": "2025-07-31", "value": 141.165}, {"date": "2025-08-31", "value": 141.14000000000001}, {"date": "2025-09-30", "value": 140.82}, {"date": "2025-10-31", "value": 140.452}]};
+
+    function seriesToMonthlyMap(series) {
+      const map = new Map();
+      (series || []).forEach(item => {
+        if (item.date && typeof item.value === 'number') {
+          const key = item.date.slice(0, 7);
+          if (!map.has(key)) {
+            map.set(key, item.value);
+          }
+        }
+      });
+      return map;
+    }
+
+    function removeOutliers(values, method = 'iqr', factor = 1.5) {
+      if (!values || values.length === 0) return { values: [], indices: [] };
+      
+      if (method === 'iqr') {
+        // 使用 IQR 方法剔除异常值
+        const sorted = [...values].sort((a, b) => a - b);
+        const q1Index = Math.floor(sorted.length * 0.25);
+        const q3Index = Math.floor(sorted.length * 0.75);
+        const q1 = sorted[q1Index];
+        const q3 = sorted[q3Index];
+        const iqr = q3 - q1;
+        const lowerBound = q1 - factor * iqr;
+        const upperBound = q3 + factor * iqr;
+        
+        const filtered = [];
+        const indices = [];
+        values.forEach((val, idx) => {
+          if (val >= lowerBound && val <= upperBound) {
+            filtered.push(val);
+            indices.push(idx);
+          }
+        });
+        return { values: filtered, indices: indices };
+      } else {
+        // 使用 Z-score 方法（3个标准差）
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const std = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+        const threshold = 3 * std;
+        
+        const filtered = [];
+        const indices = [];
+        values.forEach((val, idx) => {
+          if (Math.abs(val - mean) <= threshold) {
+            filtered.push(val);
+            indices.push(idx);
+          }
+        });
+        return { values: filtered, indices: indices };
+      }
+    }
+
+    function renderPhaseDiagram(targetId, xSeries, ySeries, title, xDisplay, yDisplay) {
+      const xMap = seriesToMonthlyMap(xSeries);
+      const yMap = seriesToMonthlyMap(ySeries);
+      const months = Array.from(xMap.keys()).filter(key => yMap.has(key)).sort();
+
+      const container = document.getElementById(targetId);
+      if (!container) {
+        return;
+      }
+      if (!months.length) {
+        container.textContent = '暂无可匹配的时间交集数据';
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+        container.style.color = '#a1aac6';
+        return;
+      }
+
+      let xs = months.map(month => xMap.get(month));
+      let ys = months.map(month => yMap.get(month));
+      
+      // 剔除异常值：分别对 x 和 y 序列使用 IQR 方法剔除异常值
+      // 如果 x 或 y 中任一个是异常值，则剔除该数据点
+      const xFiltered = removeOutliers(xs, 'iqr', 1.5);
+      const yFiltered = removeOutliers(ys, 'iqr', 1.5);
+      
+      // 找到有效索引（同时不在 x 和 y 异常值中的索引）
+      const xValidSet = new Set(xFiltered.indices);
+      const yValidSet = new Set(yFiltered.indices);
+      const validIndices = [];
+      xs.forEach((_, idx) => {
+        if (xValidSet.has(idx) && yValidSet.has(idx)) {
+          validIndices.push(idx);
+        }
+      });
+      
+      // 使用有效索引过滤数据
+      xs = validIndices.map(idx => xs[idx]);
+      ys = validIndices.map(idx => ys[idx]);
+      const filteredMonths = validIndices.map(idx => months[idx]);
+      
+      if (!xs.length || !ys.length) {
+        container.textContent = '剔除异常值后无有效数据';
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+        container.style.color = '#a1aac6';
+        return;
+      }
+      
+      const order = filteredMonths.map((_, index) => index);
+      
+      // 提取年份用于标注（使用过滤后的数据）
+      const years = filteredMonths.map(m => m.substring(0, 4));
+      const yearLabels = [];
+      const yearPositions = [];
+      const lastYear = {};
+      filteredMonths.forEach((month, idx) => {
+        const year = month.substring(0, 4);
+        if (idx === 0 || year !== filteredMonths[idx - 1].substring(0, 4)) {
+          yearLabels.push(year);
+          yearPositions.push({x: xs[idx], y: ys[idx], idx: idx});
+          lastYear[year] = {x: xs[idx], y: ys[idx], idx: idx};
+        } else {
+          lastYear[year] = {x: xs[idx], y: ys[idx], idx: idx};
+        }
+      });
+
+      // 主散点图
+      const trace = {
+        x: xs,
+        y: ys,
+        mode: 'lines+markers',
+        marker: {
+          size: 7,
+          color: order,
+          colorscale: 'Blues',
+          showscale: false,
+          line: {
+            color: '#1976d2',
+            width: 1.5
+          }
+        },
+        line: {
+          color: '#1976d2',
+          width: 2
+        },
+        text: filteredMonths,
+        hovertemplate: '月份：%{text}<br>' + (xDisplay || title.split(' vs ')[0]) + '：%{x}<br>' + (yDisplay || title.split(' vs ')[1]) + '：%{y}<extra></extra>',
+        name: ''
+      };
+
+      // 年份标注
+      const annotations = yearPositions.map((pos, i) => {
+        return {
+          x: pos.x,
+          y: pos.y,
+          text: yearLabels[i],
+          showarrow: false,
+          font: {
+            size: 11,
+            color: '#1976d2'
+          },
+          bgcolor: '#ffffff',
+          bordercolor: '#1976d2',
+          borderwidth: 1.5,
+          borderpad: 4
+        };
+      });
+
+      Plotly.newPlot(targetId, [trace], {
+        margin: { l: 60, r: 20, t: 10, b: 50 },
+        xaxis: { title: xDisplay || title.split(' vs ')[0], zeroline: true, zerolinecolor: '#666666', zerolinewidth: 1, gridcolor: '#e0e0e0', gridwidth: 1, linecolor: '#333333', linewidth: 1.5, tickfont: { color: '#333333' }, titlefont: { color: '#1976d2', size: 13 } },
+        yaxis: { title: yDisplay || title.split(' vs ')[1], zeroline: true, zerolinecolor: '#666666', zerolinewidth: 1, gridcolor: '#e0e0e0', gridwidth: 1, linecolor: '#333333', linewidth: 1.5, tickfont: { color: '#333333' }, titlefont: { color: '#1976d2', size: 13 } },
+        plot_bgcolor: '#ffffff',
+        paper_bgcolor: '#ffffff',
+        font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', size: 12, color: '#333333' },
+        hoverlabel: { bgcolor: '#1976d2', font: { color: '#ffffff' }, bordercolor: '#1565c0' },
+        showlegend: false,
+        annotations: annotations
+      }, { displayModeBar: false, responsive: true });
+    }
+
+    chartPairs.forEach(cfg => {
+      renderPhaseDiagram(cfg.id, macroData[cfg.x] || [], macroData[cfg.y] || [], cfg.title, cfg.x_display, cfg.y_display);
+    });
+  </script>
+</body>
+</html>
