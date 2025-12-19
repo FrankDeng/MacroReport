@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>中国经济与固收周度摘要 - AI Trader by Frank</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: linear-gradient(155deg, #ffffff 0%, #f4f4f4 40%, #ebebeb 100%);
+      --surface: rgba(255, 255, 255, 0.96);
+      --text-primary: #121212;
+      --text-secondary: rgba(0, 0, 0, 0.65);
+      --accent: #000000;
+      --line: rgba(0, 0, 0, 0.85);
+      --subline: rgba(0, 0, 0, 0.2);
+      --grid-line: rgba(0, 0, 0, 0.06);
+      color-scheme: light;
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+    }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      background: #ffffff;
+      border: 2px solid #000000;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border-bottom: 2px solid #000000;
+      padding: 14px 32px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .brand {
+      font-weight: 600;
+      font-size: 18px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-item {
+      padding: 10px 18px;
+      border: 1px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .nav-item:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+    .nav-item.active {
+      background: #000000;
+      color: #ffffff;
+    }
+    .nav-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 32px;
+      flex: 1;
+    }
+    .hero-section {
+      background: #ffffff;
+      padding: 32px 0;
+      margin-bottom: 32px;
+      border-bottom: 2px solid #000000;
+    }
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      color: #000000;
+    }
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    section {
+      background: #ffffff;
+      padding: 32px 0;
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--subline);
+    }
+    section:last-child {
+      border-bottom: none;
+    }
+    section h2 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: #000000;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 12px;
+    }
+    section h3 {
+      color: #000000;
+      margin-top: 28px;
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    section h4 {
+      color: #000000;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    p {
+      margin: 0 0 16px 0;
+      line-height: 1.7;
+    }
+    ol, ul {
+      margin: 0 0 16px 0;
+      padding-left: 28px;
+      line-height: 1.7;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+      border: 1px solid #000000;
+    }
+    th, td {
+      border: 1px solid #000000;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background: #f9f9f9;
+      font-weight: 600;
+    }
+    strong {
+      font-weight: 600;
+      color: #000000;
+    }
+    .references {
+      background: #f9f9f9;
+      padding: 24px;
+      border: 1px solid #000000;
+      margin-top: 32px;
+    }
+    .references h2 {
+      margin-top: 0;
+      font-size: 1.3rem;
+    }
+    .references ul {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .references li {
+      margin-bottom: 12px;
+      padding: 12px;
+      background: #ffffff;
+      border: 1px solid var(--subline);
+      transition: border-color 0.2s ease;
+    }
+    .references li:hover {
+      border-color: #000000;
+    }
+    .references li:last-child {
+      margin-bottom: 0;
+    }
+    .references a {
+      color: #000000;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    .references a:hover {
+      text-decoration: underline;
+    }
+    .references .meta {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="top-nav">
+    <div class="brand">AI Trader by Frank</div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-item">策略概览</a>
+      <a href="portfolio_HSI_SHSZ300_SPX.html" class="nav-item">组合视图</a>
+      <a href="macro_deepseek_analysis_CN.html" class="nav-item">宏观分析</a>
+      <a href="weekly_report_summary.html" class="nav-item active">周度摘要</a>
+    </div>
+    <div class="nav-meta">更新：2025-12-19</div>
+  </nav>
+  <main>
+    <div class="hero-section">
+      <h1 class="hero-title">中国经济与固收周度摘要</h1>
+      <p class="hero-subtitle">报告周期：2025-12-12 至 2025-12-19 | 参考文档：3 篇</p>
+    </div>
+    <section>
+      <h1>宏观与固收周度摘要 (2025-12-12起)</h1>
+<h2>一、本周关键要点</h2>
+<ol>
+<li><strong>长期国债逻辑面临挑战</strong>：华泰证券张继强指出，支撑30年国债走强的核心逻辑在2025年迎来现实挑战，30-10年利差结束了持续两年以上的压缩趋势。</li>
+<li><strong>政策强调供需与新老平衡</strong>：广发证券郭磊分析，政策表述在“扩大内需”基础上新增“优化供给、做优增量、盘活存量”，显示对供需平衡及新旧动能平衡的重视，预计“反内卷”将持续。</li>
+<li><strong>宏观叙事与认知改善</strong>：国内新旧动能转换正从左侧进入右侧，政策导向更注重平衡（如两重两新、反内卷），这改变了长期利率的宏观背景。</li>
+<li><strong>“资产荒”逻辑有所松动</strong>：股债跷跷板效应以及“资产荒”逻辑出现松动，对超长期利率债的配置需求构成影响。</li>
+<li><strong>中外利差构成约束</strong>：中外国债利差倒挂明显，海外“零利率”故事在国内难以复制，源于经济潜力与货币政策目标的差异。</li>
+<li><strong>全球央行黄金储备分化</strong>：2025年前三季度，全球央行黄金操作分化，中国、哈萨克斯坦等为主要增持方，而俄罗斯央行为2006年以来首次减持。</li>
+</ol>
+<h2>二、风险与不确定性</h2>
+<ol>
+<li><strong>政策平衡的力度与效果</strong>：“优化供给”与“反内卷”等政策的具体实施力度及对经济结构、企业盈利的实际影响存在不确定性。</li>
+<li><strong>新旧动能转换的节奏</strong>：经济从旧动能向新动能的转换进程是否顺畅，其右侧趋势的稳固性仍需观察。</li>
+<li><strong>海外货币政策与利差波动</strong>：主要经济体货币政策路径若超预期变化，可能加剧中外利差波动，影响国内债市尤其是长端。</li>
+<li><strong>市场情绪与机构行为变化</strong>：“资产荒”逻辑松动后，机构对超长期利率债的配置偏好可能发生非线性变化，加剧市场波动。</li>
+</ol>
+<h2>三、未来1-3个月展望</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">资产类别</th>
+<th style="text-align: left;">方向/区间判断</th>
+<th style="text-align: left;">核心驱动因素</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>中国股票</strong></td>
+<td style="text-align: left;"><strong>震荡偏强</strong></td>
+<td style="text-align: left;">政策致力于“优化供给、做优增量”，有助于改善存量经济并培育新动能，对市场情绪和部分板块构成支撑。但“反内卷”导向可能影响部分行业盈利，市场表现或呈现结构性特征。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>人民币汇率</strong></td>
+<td style="text-align: left;"><strong>双向波动，有支撑</strong></td>
+<td style="text-align: left;">国内经济新旧动能转换的积极进展与政策平衡取向可能提供基本面支撑。但中外利差倒挂及海外政策不确定性将继续构成阶段性压力，汇率预计在合理均衡水平上波动。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>债券收益率</strong></td>
+<td style="text-align: left;"><strong>长端利率下行空间受限，曲线或陡峭化</strong></td>
+<td style="text-align: left;">支撑超长债的“资产荒”逻辑松动，宏观叙事改善，叠加中外利差约束，<strong>30年期等超长端利率下行阻力较大</strong>。货币政策预计维持稳健，短端相对稳定，收益率曲线存在陡峭化可能。</td>
+</tr>
+</tbody>
+</table>
+    </section>
+    <div class="references">
+      <h2>参考研报</h2><p>（未找到文档链接信息）</p>
+    </div>
+  </main>
+</div>
+</body>
+</html>
