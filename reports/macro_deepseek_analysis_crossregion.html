@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>跨区域宏观研究分析 - AI Trader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: linear-gradient(155deg, #ffffff 0%, #f4f4f4 40%, #ebebeb 100%);
+      --surface: rgba(255, 255, 255, 0.96);
+      --text-primary: #121212;
+      --text-secondary: rgba(0, 0, 0, 0.65);
+      --accent: #000000;
+      --line: rgba(0, 0, 0, 0.85);
+      --subline: rgba(0, 0, 0, 0.2);
+      --grid-line: rgba(0, 0, 0, 0.06);
+      color-scheme: light;
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans CJK SC', sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+    }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      background: #ffffff;
+      border: 2px solid #000000;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border-bottom: 2px solid #000000;
+      padding: 14px 32px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .brand {
+      font-weight: 600;
+      font-size: 18px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-item {
+      padding: 10px 18px;
+      border: 1px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .nav-item:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+    .nav-item.active {
+      background: #000000;
+      color: #ffffff;
+    }
+    .nav-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .country-switcher {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f9f9f9;
+      border: 1px solid #000000;
+    }
+    .country-btn {
+      padding: 8px 16px;
+      border: 1px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      display: inline-block;
+    }
+    .country-btn:hover {
+      background: #000000;
+      color: #ffffff;
+    }
+    .country-btn.active {
+      background: #000000;
+      color: #ffffff;
+    }
+    main {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 40px 32px;
+      flex: 1;
+    }
+    section {
+      background: #ffffff;
+      padding: 32px 0;
+      margin-bottom: 0;
+      border-bottom: 1px solid #000000;
+    }
+    section:last-child {
+      border-bottom: none;
+    }
+    section h2 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: #000000;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 12px;
+    }
+    section h3 {
+      color: #000000;
+      margin-top: 28px;
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    .section-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .text-card {
+      background: #ffffff;
+      padding: 20px 0;
+      border: none;
+    }
+    .text-card p {
+      margin: 0 0 16px 0;
+      line-height: 1.7;
+      color: #000000;
+    }
+    .text-card ul,
+    .text-card ol {
+      margin: 0 0 16px 20px;
+      padding: 0;
+      line-height: 1.7;
+    }
+    .text-card li {
+      margin-bottom: 8px;
+      color: #000000;
+    }
+    .table-card {
+      overflow-x: auto;
+      border: 1px solid #000000;
+      background: #ffffff;
+      margin: 20px 0;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .table-card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      min-width: 100%;
+    }
+    .table-card th {
+      background: #f5f5f5;
+      color: #000000;
+      text-align: center;
+      padding: 8px 6px;
+      border: 1px solid #000000;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+      font-size: 0.75rem;
+    }
+    .table-card th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 11;
+      background: #f5f5f5;
+    }
+    .table-card td {
+      border: 1px solid #000000;
+      padding: 6px 4px;
+      text-align: right;
+      vertical-align: middle;
+      white-space: nowrap;
+      font-size: 0.75rem;
+    }
+    .table-card td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #ffffff;
+      font-weight: 600;
+      text-align: left;
+    }
+    .table-card tr:nth-child(even) {
+      background: #fafafa;
+    }
+    .table-card tr:nth-child(even) td:first-child {
+      background: #fafafa;
+    }
+    .table-card tr:hover {
+      background: #f0f0f0;
+    }
+    .table-card tr:hover td:first-child {
+      background: #f0f0f0;
+    }
+    .table-card td.positive {
+      color: #d32f2f;
+      font-weight: 500;
+    }
+    .table-card td.negative {
+      color: #1976d2;
+      font-weight: 500;
+    }
+    .table-card td.high-zscore {
+      background: #ffebee;
+      font-weight: 600;
+    }
+    .table-card td.medium-zscore {
+      background: #fff3e0;
+    }
+    .table-card td.low-zscore {
+      background: #ffffff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    thead th {
+      background: #ffffff;
+      color: #000000;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid #000000;
+      font-weight: 600;
+    }
+    tbody td {
+      border-bottom: 1px solid #000000;
+      padding: 12px 16px;
+      vertical-align: top;
+      color: #000000;
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .code-card {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #000000;
+      padding: 18px;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    .code-card pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+    }
+    footer {
+      text-align: center;
+      color: #000000;
+      font-size: 0.85rem;
+      padding: 30px 0;
+      border-top: 1px solid #000000;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="top-nav">
+    <div class="brand">AI Trader by Frank</div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-item">策略概览</a>
+      <a href="portfolio_HSI_SHSZ300_SPX.html" class="nav-item">组合视图</a>
+      <a href="macro_deepseek_analysis_crossregion.html" class="nav-item active">宏观分析</a>
+      <a href="weekly_report_summary.html" class="nav-item">周度摘要</a>
+    </div>
+    <div class="nav-meta">更新：2025-12-19</div>
+  </nav>
+  <main>
+    <div class="country-switcher">
+      <a href="macro_deepseek_analysis_crossregion.html" class="country-btn active">🌍 跨区域分析</a><a href="macro_deepseek_analysis_CN.html" class="country-btn ">🇨🇳 中国</a><a href="macro_deepseek_analysis_US.html" class="country-btn ">🇺🇸 美国</a><a href="macro_deepseek_analysis_HK.html" class="country-btn ">🇭🇰 香港</a><a href="macro_deepseek_analysis_KR.html" class="country-btn ">🇰🇷 韩国</a><a href="macro_deepseek_analysis_TW.html" class="country-btn ">🇹🇼 台湾</a><a href="macro_deepseek_analysis_SG.html" class="country-btn ">🇸🇬 新加坡</a>
+    </div>
+    <header><h1>跨区域宏观经济对比分析报告</h1></header><div class="text-card"><p><strong>生成时间</strong>: 2025-12-19 20:47:22<br><strong>数据时间范围</strong>: 2017-08-21 至 2025-12-19<br><strong>回看期数</strong>: 12 个月（YoY数据使用1个月）</p></div><div class="text-card"><p>---</p></div><section id="跨区域对比数据表格"><h2>跨区域对比数据表格</h2><div class="section-content"><div class='table-card'>
+<table>
+<tr><th rowspan='2'>国家</th><th colspan='4'>Stock Index</th><th colspan='4'>Currency</th><th colspan='4'>10Y Bond Yield</th><th colspan='4'>Policy Rate</th><th colspan='4'>CPI YoY</th><th colspan='4'>Core CPI YoY</th><th colspan='4'>PPI YoY</th><th colspan='4'>GDP YoY</th><th colspan='4'>Unemployment Rate</th><th colspan='4'>Retail Sales YoY</th><th colspan='4'>Trade Balance</th><th colspan='4'>Current Account</th><th colspan='4'>Manufacturing PMI</th><th colspan='4'>FX Reserves</th><th colspan='4'>M2 YoY</th><th colspan='4'>House Price Index</th><th colspan='4'>Leading Indicator</th><th colspan='4'>Exports YoY</th></tr>
+<tr><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th><th>数值</th><th>变化</th><th>变化速度</th><th>Z值</th></tr>
+<tr><td><strong>CN</strong></td><td>3,992</td><td class='positive'>+18.99%</td><td class='positive'>+8.84%</td><td class='high-zscore'>+2.75</td><td>7.12</td><td class='negative'>-1.24%</td><td class='negative'>-1.08%</td><td class='low-zscore'>+0.81</td><td>1.81</td><td>-0.2830</td><td class='positive'>+0.30%</td><td class='medium-zscore'>-1.77</td><td>1.40</td><td>-0.1000</td><td class='positive'>+0.20%</td><td class='medium-zscore'>-1.91</td><td>0.2000</td><td>0.5000</td><td class='positive'>+0.40%</td><td class='low-zscore'>-0.89</td><td>1.20</td><td>0.2000</td><td class='positive'>+0.10%</td><td class='low-zscore'>+0.24</td><td>-2.10</td><td>0.2000</td><td class='negative'>-0.40%</td><td class='low-zscore'>-0.71</td><td>4.80</td><td>-0.4000</td><td class='negative'>-0.20%</td><td class='low-zscore'>-0.18</td><td>5.10</td><td>0.0000</td><td class='positive'>+0.10%</td><td class='low-zscore'>-0.45</td><td>2.90</td><td>-0.1000</td><td class='positive'>+0.30%</td><td class='low-zscore'>-0.38</td><td>1,167</td><td>233.40</td><td class='positive'>+112.60%</td><td class='high-zscore'>+2.02</td><td>653.50</td><td>193.00</td><td class='negative'>-145.80%</td><td class='high-zscore'>+2.25</td><td>49.00</td><td>-1.10</td><td class='negative'>-1.70%</td><td class='low-zscore'>-0.58</td><td>3,343</td><td>82.29</td><td class='negative'>-77.54%</td><td class='high-zscore'>+2.42</td><td>8.40</td><td>-0.4000</td><td class='negative'>-0.40%</td><td class='low-zscore'>-0.49</td><td>112.90</td><td class='negative'>-2.62%</td><td class='positive'>+3.64%</td><td class='low-zscore'>-0.73</td><td>-10.81</td><td>-25.95</td><td class='negative'>-28.37%</td><td class='low-zscore'>-0.23</td><td>-1.10</td><td>-9.40</td><td class='negative'>-13.40%</td><td class='low-zscore'>-0.48</td></tr>
+<tr><td><strong>HK</strong></td><td>25,712</td><td class='positive'>+28.97%</td><td class='positive'>+8.48%</td><td class='low-zscore'>+0.39</td><td>7.78</td><td class='negative'>-0.04%</td><td class='positive'>+0.31%</td><td class='low-zscore'>-0.94</td><td>2.79</td><td>1.18</td><td class='positive'>+1.79%</td><td class='high-zscore'>+2.30</td><td>4.25</td><td>-0.8095</td><td class='negative'>-0.12%</td><td class='low-zscore'>+0.70</td><td>1.20</td><td>0.1000</td><td class='positive'>+0.10%</td><td class='low-zscore'>-0.57</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>3.80</td><td>0.7000</td><td class='positive'>+0.60%</td><td class='low-zscore'>+0.67</td><td>3.80</td><td>0.7000</td><td class='positive'>+0.50%</td><td class='low-zscore'>+0.01</td><td>4.90</td><td>3.10</td><td class='positive'>+2.85%</td><td class='low-zscore'>+0.39</td><td>-51.30</td><td>-2.30</td><td class='negative'>-10.90%</td><td class='low-zscore'>+0.27</td><td>56.40</td><td>17.70</td><td class='negative'>-3.60%</td><td class='medium-zscore'>+1.91</td><td>51.20</td><td>-1.00</td><td class='negative'>-4.30%</td><td class='low-zscore'>+0.74</td><td>426.00</td><td>4.70</td><td class='negative'>-0.60%</td><td class='low-zscore'>-0.59</td><td>4.50</td><td>0.5000</td><td class='positive'>+2.70%</td><td class='low-zscore'>+0.09</td><td>288.50</td><td class='negative'>-1.20%</td><td class='positive'>+12.15%</td><td class='medium-zscore'>-1.81</td><td>140.78</td><td>2.31</td><td class='positive'>+17.30%</td><td class='medium-zscore'>-1.54</td><td>16.10</td><td>1.60</td><td class='positive'>+1.40%</td><td class='low-zscore'>+0.85</td></tr>
+<tr><td><strong>KR</strong></td><td>4,045</td><td class='positive'>+61.52%</td><td class='positive'>+59.68%</td><td class='high-zscore'>+3.81</td><td>1,458</td><td class='positive'>+4.46%</td><td class='negative'>-2.23%</td><td class='medium-zscore'>+1.93</td><td>3.23</td><td>0.2253</td><td class='positive'>+1.11%</td><td class='low-zscore'>+0.83</td><td>2.50</td><td>-1.00</td><td class='negative'>-1.50%</td><td class='low-zscore'>+0.51</td><td>2.40</td><td>0.3000</td><td class='negative'>-0.10%</td><td class='low-zscore'>+0.07</td><td>2.50</td><td>0.1000</td><td class='negative'>-0.40%</td><td class='low-zscore'>+0.28</td><td>1.50</td><td>0.3000</td><td class='negative'>-0.30%</td><td class='low-zscore'>-0.36</td><td>1.70</td><td>1.10</td><td class='positive'>+0.50%</td><td class='low-zscore'>-0.30</td><td>2.60</td><td>-0.1000</td><td class='negative'>-0.30%</td><td class='medium-zscore'>-1.21</td><td>4.10</td><td>2.60</td><td class='positive'>+5.10%</td><td class='low-zscore'>-0.21</td><td>68.40</td><td>20.60</td><td class='negative'>-57.40%</td><td class='low-zscore'>+0.81</td><td>114.60</td><td>23.20</td><td class='negative'>-57.80%</td><td class='medium-zscore'>+1.66</td><td>49.40</td><td>-2.00</td><td class='negative'>-5.05%</td><td class='low-zscore'>+0.01</td><td>428.82</td><td>13.13</td><td class='positive'>+10.31%</td><td class='low-zscore'>+0.47</td><td>8.50</td><td>0.4000</td><td class='negative'>-0.60%</td><td class='low-zscore'>+0.49</td><td>102.10</td><td class='positive'>+5.91%</td><td class='positive'>+4.33%</td><td class='medium-zscore'>+1.29</td><td>4.60</td><td>0.6000</td><td class='negative'>-0.90%</td><td class='low-zscore'>+0.85</td><td>3.50</td><td>-9.10</td><td class='negative'>-20.60%</td><td class='low-zscore'>-0.04</td></tr>
+<tr><td><strong>SG</strong></td><td>4,501</td><td class='positive'>+21.63%</td><td class='positive'>+2.74%</td><td class='high-zscore'>+3.28</td><td>1.30</td><td class='negative'>-2.46%</td><td class='negative'>-1.62%</td><td class='medium-zscore'>-1.61</td><td>1.85</td><td>-0.9984</td><td class='negative'>-0.80%</td><td class='low-zscore'>-0.52</td><td>1.06</td><td>-1.92</td><td class='negative'>-1.28%</td><td class='low-zscore'>-0.44</td><td>0.7000</td><td>0.2000</td><td class='positive'>+0.30%</td><td class='low-zscore'>-0.63</td><td>0.4000</td><td>0.1000</td><td class='positive'>+0.30%</td><td class='low-zscore'>-0.94</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>4.20</td><td>-0.5000</td><td class='negative'>-1.10%</td><td class='low-zscore'>+0.21</td><td>2.00</td><td>-0.1000</td><td class='positive'>+0.00%</td><td class='low-zscore'>-0.65</td><td>2.82</td><td>-2.44</td><td class='negative'>-3.18%</td><td class='low-zscore'>+0.08</td><td>61.10</td><td>11.60</td><td class='positive'>+11.40%</td><td class='high-zscore'>+2.22</td><td>101.90</td><td>9.90</td><td class='negative'>-26.70%</td><td class='medium-zscore'>+1.60</td><td>50.00</td><td>-0.8000</td><td class='negative'>-1.40%</td><td class='low-zscore'>-0.37</td><td>392.20</td><td>8.48</td><td class='negative'>-37.00%</td><td class='medium-zscore'>+1.19</td><td>8.50</td><td>-1.00</td><td class='negative'>-1.30%</td><td class='medium-zscore'>+1.17</td><td>5.10</td><td class='negative'>-62.50%</td><td class='negative'>-610.12%</td><td class='low-zscore'>-0.11</td><td>118.50</td><td>8.10</td><td class='positive'>+3.70%</td><td class='medium-zscore'>+1.94</td><td>22.20</td><td>15.20</td><td class='negative'>-3.30%</td><td class='medium-zscore'>+1.83</td></tr>
+<tr><td><strong>TW</strong></td><td>27,551</td><td class='positive'>+20.55%</td><td class='negative'>-14.06%</td><td class='high-zscore'>+2.60</td><td>31.09</td><td class='negative'>-3.97%</td><td class='negative'>-5.36%</td><td class='low-zscore'>+0.54</td><td>1.30</td><td>-0.2498</td><td class='negative'>-0.51%</td><td class='low-zscore'>+0.74</td><td>2.00</td><td>0.3750</td><td class='positive'>+0.12%</td><td class='medium-zscore'>+1.41</td><td>1.48</td><td>0.2300</td><td class='positive'>+0.58%</td><td class='low-zscore'>-0.08</td><td>1.84</td><td>0.3800</td><td class='positive'>+0.67%</td><td class='low-zscore'>+0.41</td><td>-3.50</td><td>0.1900</td><td class='negative'>-0.90%</td><td class='medium-zscore'>-1.10</td><td>7.64</td><td>-0.3700</td><td class='negative'>-2.93%</td><td class='medium-zscore'>+1.50</td><td>3.35</td><td>-0.0500</td><td class='negative'>-0.01%</td><td class='medium-zscore'>-1.38</td><td>-2.18</td><td>-2.54</td><td class='negative'>-6.50%</td><td class='low-zscore'>-0.97</td><td>135.50</td><td>48.00</td><td class='positive'>+28.40%</td><td class='high-zscore'>+3.82</td><td>146.20</td><td>35.40</td><td class='negative'>-6.70%</td><td class='high-zscore'>+2.35</td><td>47.70</td><td>-5.20</td><td class='negative'>-9.10%</td><td class='low-zscore'>-0.24</td><td>600.20</td><td>23.35</td><td class='positive'>+7.58%</td><td class='medium-zscore'>+1.55</td><td>5.35</td><td>0.3000</td><td class='negative'>-0.70%</td><td class='low-zscore'>-0.15</td><td>168.73</td><td class='positive'>+16.70%</td><td class='negative'>-18.44%</td><td class='medium-zscore'>+1.58</td><td>108.12</td><td>5.73</td><td class='negative'>-3.13%</td><td class='medium-zscore'>+1.89</td><td>49.70</td><td>15.90</td><td class='positive'>+16.10%</td><td class='high-zscore'>+2.55</td></tr>
+<tr><td><strong>US</strong></td><td>6,831</td><td class='positive'>+13.64%</td><td class='negative'>-14.66%</td><td class='high-zscore'>+2.32</td><td>98.76</td><td class='negative'>-4.40%</td><td class='negative'>-1.54%</td><td class='low-zscore'>+0.02</td><td>4.11</td><td>-0.2419</td><td class='negative'>-0.10%</td><td class='medium-zscore'>+1.06</td><td>3.87</td><td>-0.7722</td><td class='negative'>-0.09%</td><td class='low-zscore'>+0.72</td><td>3.00</td><td>0.1000</td><td class='negative'>-0.10%</td><td class='low-zscore'>-0.21</td><td>3.00</td><td>-0.1000</td><td class='negative'>-0.10%</td><td class='low-zscore'>-0.19</td><td>2.80</td><td>0.0000</td><td class='negative'>-0.10%</td><td class='low-zscore'>-0.25</td><td>2.10</td><td>0.1000</td><td class='positive'>+0.50%</td><td class='low-zscore'>-0.16</td><td>4.30</td><td>0.1000</td><td class='negative'>-0.40%</td><td class='low-zscore'>-0.14</td><td>5.00</td><td>0.9000</td><td class='positive'>+1.20%</td><td class='low-zscore'>-0.12</td><td>-59.55</td><td>11.66</td><td class='positive'>+23.71%</td><td class='low-zscore'>+0.21</td><td>-1,329</td><td>-331.00</td><td class='positive'>+186.40%</td><td class='medium-zscore'>-1.93</td><td>48.70</td><td>1.80</td><td class='positive'>+2.20%</td><td class='low-zscore'>-0.81</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>4.50</td><td>0.1000</td><td class='positive'>+0.20%</td><td class='low-zscore'>-0.25</td><td>703.91</td><td class='positive'>+14.59%</td><td class='negative'>-26.88%</td><td class='medium-zscore'>+1.55</td><td>53.60</td><td>-16.50</td><td class='negative'>-17.20%</td><td class='medium-zscore'>-1.50</td><td>1.90</td><td>-1.60</td><td class='negative'>-0.90%</td><td class='low-zscore'>-0.28</td></tr>
+</table>
+</div>
+
+**说明：**
+- **Z值**：基于全数据量的标准化分数，反映当前值在历史数据中的相对位置
+- **数值**：当前指标的实际数值
+- **变化**：相对于回看期前的变化（一阶导数）
+- **变化速度**：变化的变化（二阶导数），反映变化趋势的加速度
+- YoY数据使用1个月回看期，其他数据使用12个月回看期
+
+
+---</div></section><section id="deepseek-分析结果"><h2>DeepSeek 分析结果</h2><div class="section-content"><div class="text-card"><p>好的，作为一名资深的宏观经济分析师，我将基于您提供的跨区域对比数据表格，结合宏观经济理论框架，对六个经济体进行深入分析。</p></div><div class="text-card"><p><strong>核心前提说明：</strong><br>1.  <strong>数据解读：</strong> 表格中的“数值”可视为当前水平或最新值，“变化”和“变化速度”反映近期动态，“zscore”有助于判断该指标在自身历史序列中的相对位置（正值通常表示高于历史均值）。<br>2.  <strong>周期判断框架：</strong> 综合运用增长（GDP、PMI）、通胀（CPI、PPI）、金融条件（利率、货币供应）和资产价格（股市、房价）等多维度指标进行交叉验证。<br>3.  <strong>区域联动性：</strong> 分析将充分考虑中美两大经济体的主导作用，以及亚洲供应链和金融市场的紧密联系。</p></div><div class="text-card"><p>---</p></div><h3><strong>宏观经济跨区域对比分析报告</strong></h3><h4><strong>1. 经济周期特点对比</strong></h4><div class="table-card"><table><thead><tr><th>国家/地区</th><th>主要周期阶段判断</th><th>关键特征与驱动因素</th><th>与全球周期的同步性</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>中国 (CN)</strong></td><td><strong>温和复苏与结构性调整期</strong></td><td><strong>特征：</strong> “高增长、低通胀”模式转变。GDP增速（4.8%）尚可但领先指标（-10.8）和制造业PMI（49.0）疲软，显示内生动力不足。CPI（0.2%）极低，PPI（-2.1）通缩，存在需求不足风险。政策已转向宽松（政策利率1.4%，M2增速8.4%），但信贷传导至实体经济不畅。出口（-1.1%）转弱，股市（+19.0%）反弹更多反映政策预期而非基本面全面改善。&lt;br&gt;<strong>驱动：</strong> 政策驱动（货币与财政宽松）托底，但受制于房地产调整（房价指数zscore -0.73）、地方政府债务压力及外部需求放缓。</td><td><strong>异步。</strong> 与美国等西方经济体周期错位。当全球主要央行处于紧缩尾声时，中国正处于宽松周期，旨在对冲内需疲软和通缩压力。</td></tr><tr><td><strong>美国 (US)</strong></td><td><strong>扩张末期向温和放缓过渡期</strong></td><td><strong>特征：</strong> 经济展现韧性但出现分化。劳动力市场（失业率4.3%）依然紧张，消费（零售销售5.0%）稳健，支撑GDP（2.1%）。但核心通胀（3.0%）粘性仍高，迫使利率维持高位（政策利率3.87%，10Y国债4.11%）。制造业PMI（48.7）收缩，领先指标（-16.5）显著下滑，预示未来增长动能减弱。巨额经常账户赤字（-1329）是长期结构性风险。&lt;br&gt;<strong>驱动：</strong> 由强劲的消费和就业市场驱动，但高利率环境开始抑制投资和制造业活动。财政赤字是短期支撑，也是长期风险。</td><td><strong>主导。</strong> 其货币政策和需求变化直接影响全球资本流动和贸易周期。当前处于“higher for longer”利率环境的顶点区域。</td></tr><tr><td><strong>香港 (HK)</strong></td><td><strong>复苏与金融条件改善期</strong></td><td><strong>特征：</strong> 经济跟随外围回暖。GDP（3.8%）反弹，出口（16.1%）强劲，零售销售（4.9%）改善。金融市场条件显著改善：股市（+29.0%）反弹，利率随美息见顶而企稳（政策利率4.25%）。房价（zscore -1.81）仍处深度调整中，是主要拖累项。&lt;br&gt;<strong>驱动：</strong> 高度依赖外部环境。内地经济复苏预期和美联储加息周期见顶，共同改善了其金融和贸易前景。联系汇率制下，货币政策缺乏独立性。</td><td><strong>高度同步。</strong> 兼具对中国内地（贸易、旅游）和美国（利率、资本流动）的双重敏感性，当前处于两者边际改善的共振点。</td></tr><tr><td><strong>韩国 (KR)</strong></td><td><strong>外需拉动型复苏，内需疲软</strong></td><td><strong>特征：</strong> 出口（3.5%）和制造业PMI（49.4）显示外需边际改善，但水平仍低。内需是明显短板：CPI（2.4%）已近目标，但零售销售（4.1%）增长乏力。央行维持相对鹰派（政策利率2.5%）。股市（+61.5%）表现全球领先，反映对半导体周期复苏的强烈预期。&lt;br&gt;<strong>驱动：</strong> 全球科技周期（尤其是半导体）是核心驱动力。内需受高家庭债务和利率抑制。</td><td><strong>同步于全球科技周期。</strong> 是观察全球贸易和制造业周期的领先指标，当前显示初步复苏信号。</td></tr><tr><td><strong>新加坡 (SG)</strong></td><td><strong>稳健扩张，但增长放缓</strong></td><td><strong>特征：</strong> 整体经济表现稳健但增速放缓（GDP 4.2%）。外向型指标强劲：出口（22.2%）、贸易顺差（61.1）均表现优异。通胀（CPI 0.7%）得到有效控制。但制造业PMI（50.0）处于荣枯线，领先指标（+3.7%）增速一般，预示未来增长动能平稳。&lt;br&gt;<strong>驱动：</strong> 作为全球贸易和金融枢纽，受益于区域贸易流和资本流动。其货币政策以汇率为主要工具，当前新元强势（zscore -1.61）有助于抑制输入性通胀。</td><td><strong>同步于全球贸易与金融周期。</strong> 其数据是亚太地区贸易活动和金融稳定的晴雨表。</td></tr><tr><td><strong>台湾 (TW)</strong></td><td><strong>科技驱动复苏，内需分化</strong></td><td><strong>特征：</strong> 呈现典型的“外热内冷”。出口（49.7%）和贸易顺差（135.5）因AI驱动的科技需求而爆炸式增长，拉动GDP（7.64%）高增。股市（+20.6%）受此提振。然而，内需极其疲软：零售销售（-2.18%）负增长，CPI（1.48%）温和。制造业PMI（47.7）收缩，反映传统产业承压。&lt;br&gt;<strong>驱动：</strong> 几乎完全由全球AI与高端半导体需求驱动。内需受制于薪资增长缓慢和高房价（房价指数zscore +1.58）的挤出效应。</td><td><strong>高度同步于全球科技供应链周期。</strong> 其出口数据是全球科技产品需求的超灵敏指标。</td></tr></tbody></table></div><h4><strong>2. 未来发展趋势预测（未来3-6个月）</strong></h4><div class="text-card"><p>*   <strong>中国：</strong> <strong>政策效果验证期，复苏斜率平缓。</strong> 预计在持续的政策刺激下，经济将避免失速，出现弱复苏。CPI有望温和回升至1%左右，PPI通缩收窄。房地产市场的企稳是关键观察点。制约因素是企业和居民信心修复缓慢，以及外部环境的不确定性。增长动力将更多依赖高端制造、绿色能源等政策扶持领域。<br>*   <strong>美国：</strong> <strong>“软着陆”概率上升，但增长放缓。</strong> 预计经济增长将放缓至潜在增速以下（1-1.5%），劳动力市场逐步降温。通胀将继续缓慢下行，但服务通胀粘性可能使美联储在2024年大部分时间维持高利率，降息时点可能晚于市场预期。风险在于就业市场若急剧恶化，可能引发更快降息与经济衰退的切换。<br>*   <strong>香港：</strong> <strong>延续复苏，但高度波动。</strong> 随着内地访客流量恢复和美联储政策转向预期，消费和旅游业将继续复苏。股市和楼市对利率变化极度敏感，若美债收益率趋势性下行，将带来显著提振。主要风险来自内地经济复苏不及预期和全球地缘政治冲突。<br>*   <strong>韩国与台湾：</strong> <strong>科技周期上行有望延续。</strong> 未来3-6个月，AI相关需求预计将支撑两地出口和经济增长。韩国将观察内需能否随通胀缓和而改善。台湾需关注产业过度集中和地缘政治风险对供应链的潜在扰动。若全球科技投资周期确认上行，两地经济将是最直接的受益者。<br>*   <strong>新加坡：</strong> <strong>维持稳定增长态势。</strong> 作为区域稳定器，其经济预计将保持温和扩张。金融和贸易服务需求将支撑增长。主要挑战是全球贸易保护主义抬头和主要经济体增长放缓可能带来的外溢影响。</p></div><h4><strong>3. 面临的风险问题识别与评估</strong></h4><div class="table-card"><table><thead><tr><th>风险类别</th><th>高风险</th><th>中高风险</th><th>说明与关联性</th></tr></thead><tbody><tr><td>:---</td><td>:---</td><td>:---</td><td>:---</td></tr><tr><td><strong>通缩/需求不足风险</strong></td><td><strong>中国</strong></td><td>-</td><td>CPI接近零、PPI负增长、零售销售疲软，存在资产负债表衰退风险。这是当前中国经济最核心的宏观风险。</td></tr><tr><td><strong>通胀粘性风险</strong></td><td><strong>美国</strong></td><td><strong>韩国</strong></td><td>美国核心服务通胀顽固，可能迫使高利率维持更久。韩国通胀虽回落，但央行对二次通胀保持警惕。</td></tr><tr><td><strong>房地产与债务风险</strong></td><td><strong>中国</strong></td><td><strong>香港、韩国</strong></td><td>中国房地产调整深度影响地方政府财政和金融稳定。香港高利率下楼市调整压力大。韩国家庭债务高企。</td></tr><tr><td><strong>外部需求与贸易风险</strong></td><td><strong>台湾、韩国</strong></td><td><strong>新加坡、香港</strong></td><td>台、韩高度依赖科技出口，周期波动性大。新加坡、香港作为开放枢纽，易受全球贸易下滑冲击。</td></tr><tr><td><strong>汇率与资本流动风险</strong></td><td>-</td><td><strong>香港、日本(未列)、新兴市场</strong></td><td>香港在联系汇率制下承受资本外流压力。若美元因美国经济强劲再度走强，可能引发新兴市场货币压力。</td></tr><tr><td><strong>地缘政治与供应链风险</strong></td><td><strong>台湾</strong></td><td><strong>韩国、新加坡</strong></td><td>台海局势直接影响全球半导体供应链。韩、新作为关键节点，也面临区域紧张局势外溢风险。</td></tr></tbody></table></div><div class="text-card"><p><strong>风险关联性与传导机制分析：</strong><br>1.  <strong>“美国高利率 -&gt; 全球金融条件 -&gt; 亚洲资产与汇率”链条：</strong> 美国维持高利率的时间超预期，将通过利率平价和风险情绪渠道，导致美元保持强势，对港币联系汇率构成压力，并可能引发亚洲地区资本外流，压制股市和楼市估值。<br>2.  <strong>“中国需求不足 -&gt; 亚洲供应链与通胀”链条：</strong> 中国内需疲弱和PPI通缩，会通过进口需求下降和出口价格竞争，向韩国、台湾、新加坡等贸易伙伴输出通缩压力，抑制其通胀和部分制造业利润。<br>3.  <strong>“科技周期 -&gt; 台韩出口 -&gt; 全球资本开支”链条：</strong> 台韩出口是科技周期的领先指标。若其出口动能减弱，将预示全球企业资本开支放缓，进而影响美国科技股盈利和全球经济增长预期，形成负反馈。<br>4.  <strong>“地缘政治风险 -&gt; 供应链重构 -&gt; 成本与效率”链条：</strong> 台海等地缘风险会迫使企业进行供应链“友岸外包”或多元化，这短期内推高成本（对新加坡等枢纽利好），长期可能降低全球生产效率，构成滞胀风险。</p></div><h4><strong>4. 跨区域关联性总结</strong></h4><div class="text-card"><p>当前全球经济呈现 <strong>“双轨分化”与“周期错位”</strong> 的鲜明格局：<br>*   <strong>“美国轨道”</strong>：以消费和服务业为主导，面临的是<strong>通胀与利率的博弈</strong>，经济正在从过热向温和放缓过渡。<br>*   <strong>“中国轨道”</strong>：以投资和制造业为主导，面临的是<strong>通缩与债务的挑战</strong>，经济在政策刺激下艰难寻底复苏。<br>*   <strong>亚洲小型开放经济体</strong>则在这两大轨道之间摇摆：<strong>香港、新加坡</strong>更受金融条件和贸易流影响；<strong>韩国、台湾</strong>则深度嵌套在全球科技供应链中，其景气度直接由“美国轨道”的科技需求和“中国轨道”的供应链地位共同决定。</p></div><div class="text-card"><p><strong>投资与政策启示：</strong> 在这种复杂环境下，各国政策空间受到极大制约。美国需在抗通胀和防衰退间走钢丝；中国需在稳增长和防风险间求平衡；亚洲出口型经济体则需应对外部需求波动和内部结构调整的双重压力。对于市场而言，把握中美经济数据的相对强弱和货币政策预期差，是理解未来资产价格走势的关键。</p></div><div class="text-card"><p>---</p></div><div class="text-card"><p>&lt;/details&gt;</p></div></div></section>
+  </main>
+</div>
+</body>
+</html>
